@@ -1,0 +1,54 @@
+# --- General / OS ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+*.tmp
+
+# --- Backend (NestJS) ---
+/node_modules
+/dist
+/artifacts
+/coverage
+.env
+.env.development
+.env.production
+# NestJS CLI cache
+.incremental
+
+# --- Mobile (React Native) ---
+# Dependencies
+/node_modules
+# Android-specific
+/android/app/build
+/android/.gradle
+/android/local.properties
+/android/keyrings
+*.keystore
+!/android/app/debug.keystore
+# iOS-specific
+/ios/Pods
+/ios/build
+/ios/*.xcworkspace
+*.moved-aside
+DerivedData/
+# Expo (if using)
+.expo/
+
+# --- IoT (ESP32 / PlatformIO / Arduino) ---
+# Arduino IDE
+/libraries/
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+# Sensitive WiFi/MQTT credentials (if stored in a header)
+secrets.h
+config.h.local
+
+# --- Payments & Secrets ---
+# Never commit your PayMongo keys or MQTT passwords
+secrets.json
+.pnp
+.pnp.js
