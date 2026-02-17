@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	content: [
-		"./app/**/*.{js,jsx,ts,tsx}",
-		"./components/**/*.{js,jsx,ts,tsx}",
+		"./src/app/**/*.{js,jsx,ts,tsx}",
+		"./ src/components/**/*.{js,jsx,ts,tsx}",
 	],
 	presets: [require("nativewind/preset")],
 	theme: {
@@ -22,6 +22,14 @@ module.exports = {
 				"header-semibold": ["Mont-SemiBold"],
 				"header-bold": ["Mont-Bold"],
 				"header-extrabold": ["Mont-ExtraBold"],
+			},
+			colors: {
+				neon: "#00F0C5", // The bright teal
+				darkBgTop: "#0d2120", // Dark green/teal background
+				darkBgBot: "#020807", // Black background
+				text: "#FFFFFF",
+				textDim: "#889999",
+				buttonText: "#000000",
 			},
 		},
 	},

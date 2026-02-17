@@ -1,12 +1,19 @@
+import { Link } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const Register = () => {
+export default function RegisterScreen() {
 	return (
-		<View>
-			<Text>Register</Text>
-		</View>
-	);
-};
+		<SafeAreaView className="flex-1 bg-darkBgBot items-center justify-center">
+			<Text className="text-white text-2xl font-bold">
+				Register Screen
+			</Text>
+			<Text className="text-gray-400 mt-2">Transition Successful!</Text>
 
-export default Register;
+			<Link href="/" className="mt-10 text-neon">
+				Go Back Home
+			</Link>
+		</SafeAreaView>
+	);
+}
