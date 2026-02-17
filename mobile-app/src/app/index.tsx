@@ -183,12 +183,7 @@ export default function OnboardingScreen() {
 	};
 
 	return (
-		<Animated.View
-			style={[
-				{ flex: 1, backgroundColor: "#020807" },
-				animatedScreenStyle,
-			]}
-		>
+		<View style={{ flex: 1, backgroundColor: "#020807" }}>
 			<StatusBar barStyle="light-content" />
 			<LinearGradient
 				colors={["#0d2120", "#020807"]}
@@ -268,6 +263,6 @@ export default function OnboardingScreen() {
 					</View>
 				</View>
 			</SafeAreaView>
-		</Animated.View>
+		</View>
 	);
 }
