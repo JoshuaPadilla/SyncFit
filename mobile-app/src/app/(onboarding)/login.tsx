@@ -1,4 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
+
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
@@ -16,6 +17,7 @@ import {
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 // Using Lucide Icons as requested
+import { Image } from "expo-image";
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react-native";
 
 export default function LoginScreen() {
@@ -76,7 +78,7 @@ export default function LoginScreen() {
 									<Text className="text-gray-400 mb-2 ml-1 text-xs font-medium uppercase tracking-wider">
 										Email Address
 									</Text>
-									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-4 flex-row items-center">
+									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-2 flex-row items-center">
 										<Mail
 											size={20}
 											color={
@@ -109,7 +111,7 @@ export default function LoginScreen() {
 											</Text>
 										</TouchableOpacity>
 									</View>
-									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-4 flex-row items-center">
+									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-2 flex-row items-center">
 										<Lock
 											size={20}
 											color={
@@ -184,7 +186,12 @@ export default function LoginScreen() {
 									<View className="bg-white rounded-full p-1 mr-3">
 										{/* You can use a specific Google SVG here, but Lucide doesn't have brands. 
                                             Using a placeholder or your previous Material icon for Google is fine. */}
-										<View className="w-4 h-4 bg-red-500 rounded-full" />
+										<Image
+											source={{
+												uri: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+											}}
+											style={{ width: 24, height: 24 }}
+										/>
 									</View>
 									<Text className="text-white text-base font-bold">
 										Continue with Google

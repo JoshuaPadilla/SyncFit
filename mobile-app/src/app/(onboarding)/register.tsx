@@ -16,8 +16,8 @@ import {
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 // Import FontAwesome for the Google Icon
-import { FontAwesome } from "@expo/vector-icons";
 // Lucide Icons
+import { Image } from "expo-image";
 import { Eye, EyeOff, Lock, Mail, User, UserPlus } from "lucide-react-native";
 
 export default function RegisterScreen() {
@@ -79,7 +79,7 @@ export default function RegisterScreen() {
 									<Text className="text-gray-400 mb-2 ml-1 text-xs font-medium uppercase tracking-wider">
 										Full Name
 									</Text>
-									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-4 flex-row items-center">
+									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-2 flex-row items-center">
 										<User
 											size={20}
 											color={
@@ -107,7 +107,7 @@ export default function RegisterScreen() {
 									<Text className="text-gray-400 mb-2 ml-1 text-xs font-medium uppercase tracking-wider">
 										Email Address
 									</Text>
-									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-4 flex-row items-center">
+									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-2 flex-row items-center">
 										<Mail
 											size={20}
 											color={
@@ -137,7 +137,7 @@ export default function RegisterScreen() {
 									<Text className="text-gray-400 mb-2 ml-1 text-xs font-medium uppercase tracking-wider">
 										Password
 									</Text>
-									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-4 flex-row items-center">
+									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-2 flex-row items-center">
 										<Lock
 											size={20}
 											color={
@@ -220,10 +220,14 @@ export default function RegisterScreen() {
 										className="border border-white/10 bg-white/5 flex-row items-center justify-center h-16 rounded-2xl active:bg-white/10"
 									>
 										<View className="mr-3 bg-white rounded-full w-8 h-8 items-center justify-center">
-											<FontAwesome
-												name="google"
-												size={18}
-												color="#000"
+											<Image
+												source={{
+													uri: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+												}}
+												style={{
+													width: 24,
+													height: 24,
+												}}
 											/>
 										</View>
 										<Text className="text-white text-base font-bold">

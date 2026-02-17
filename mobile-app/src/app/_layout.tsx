@@ -30,14 +30,19 @@ export default function RootLayout() {
 	if (!loaded && !error) return null;
 
 	return (
-		<Stack screenOptions={{ headerShown: false }}>
+		<Stack
+			screenOptions={{
+				headerShown: false,
+				animation: "fade_from_bottom",
+			}}
+		>
 			<Stack.Screen
 				name="(onboarding)"
-				options={{ headerShown: false }}
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
 			/>
 			<Stack.Screen
 				name="(auth_screens)"
-				options={{ headerShown: false }}
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
 			/>
 		</Stack>
 	);
