@@ -1,11 +1,19 @@
+import { Stack } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
 
 const AuthScreensLayout = () => {
 	return (
-		<View>
-			<Text>AuthScreensLayout</Text>
-		</View>
+		<Stack
+			screenOptions={{
+				headerShown: false,
+				animation: "fade_from_bottom",
+			}}
+		>
+			<Stack.Screen
+				name="(user)"
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
+			/>
+		</Stack>
 	);
 };
 

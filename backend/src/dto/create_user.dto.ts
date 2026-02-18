@@ -1,15 +1,24 @@
-import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
-import { UserRole } from 'src/enums/user_role.enums';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
 
-export class CreateUserDto {
+export class CreateProfileDto {
   @IsEmail()
   email: string;
 
-  // We accept a plain password in the DTO, the service will hash it
   @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  password: string;
+  @IsNotEmpty()
+  firstName: string;
 
-  @IsEnum(UserRole)
-  role: UserRole;
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @IsOptional()
+  @IsPhoneNumber() // Validates international phone formats
+  phoneNumber?: string;
 }

@@ -17,16 +17,33 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 // Import FontAwesome for the Google Icon
 // Lucide Icons
+import { supabase } from "@/_lib/supabase";
 import { Image } from "expo-image";
 import { Eye, EyeOff, Lock, Mail, UserPlus } from "lucide-react-native";
 
 export default function RegisterScreen() {
 	const [passwordVisible, setPasswordVisible] = useState(false);
 	const [form, setForm] = useState({
-		email: "",
-		password: "",
-		confirmPassword: "",
+		email: "sample@email.com",
+		password: "12345678",
+		confirmPassword: "12345678",
 	});
+
+	const handleSignup = async () => {
+		const { data, error } = await supabase.auth.signUp({
+			email: form.email,
+			password: form.password,
+		});
+
+		if (error) {
+			console.log("register error:", error.message);
+			return;
+		}
+
+		if (data.session) {
+			router.replace("/(onboarding)/profile_completion");
+		}
+	};
 
 	// Placeholder for Google Auth Logic
 	const handleGoogleSignup = () => {
@@ -217,13 +234,20 @@ export default function RegisterScreen() {
 									className="mt-4"
 								>
 									<TouchableOpacity
-										activeOpacity={0.8}
-										className="h-16 rounded-2xl flex-row items-center justify-center bg-neon shadow-2xl shadow-neon/20"
-										onPress={() =>
-											router.push(
-												"/(onboarding)/profile_completion",
-											)
+										disabled={
+											!form.password ||
+											form.password !==
+												form.confirmPassword
 										}
+										activeOpacity={0.8}
+										className={`${
+											!form.password ||
+											form.password !==
+												form.confirmPassword
+												? "bg-neon/20"
+												: "bg-neon"
+										} h-16 rounded-2xl flex-row items-center justify-center  shadow-2xl shadow-neon/20`}
+										onPress={() => handleSignup()}
 									>
 										<Text className="text-lg font-black mr-2 text-black">
 											SIGN UP

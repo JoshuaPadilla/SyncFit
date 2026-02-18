@@ -24,15 +24,6 @@ export class Member {
   @JoinColumn()
   user: User;
 
-  @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
-
-  @Column({ nullable: true })
-  phoneNumber: string;
-
   @Index()
   @Column({ unique: true })
   rfidUid: string;

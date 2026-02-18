@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from 'src/dto/create_user.dto';
+import { CreateProfileDto } from 'src/dto/create_user.dto';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -10,10 +10,13 @@ export class UserService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto) {
-    const { password, ...rest } = createUserDto;
-    const user = this.userRepo.create({ ...rest, passwordHash: password });
+  async createProfile(createProfileDto: CreateProfileDto) {
+    const newUser = this.userRepo.create(createProfileDto);
 
-    return await this.userRepo.save(user);
+    return await this.userRepo.save(newUser);
+  }
+
+  async fetchLoggedUser(userId: string) {
+    return await this.userRepo.findOne({ where: { id: userId } });
   }
 }

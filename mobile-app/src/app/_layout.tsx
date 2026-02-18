@@ -1,10 +1,23 @@
+import { AuthProvider, useAuth } from "@/context/authContext";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "./global.css";
 
+// Keep this here so it runs immediately
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
+	return (
+		<AuthProvider>
+			<RootLayoutNav />
+		</AuthProvider>
+	);
+}
+
+function RootLayoutNav() {
+	const { isLoading } = useAuth();
 	const [loaded, error] = useFonts({
 		// Inter Weights
 		"Inter-Light": require("../../assets/fonts/Inter_28pt-Light.ttf"),
@@ -22,11 +35,13 @@ export default function RootLayout() {
 	});
 
 	useEffect(() => {
-		if (loaded || error) {
+		// Hide splash screen only when BOTH fonts are loaded AND auth is checked
+		if ((loaded || error) && !isLoading) {
 			SplashScreen.hideAsync();
 		}
-	}, [loaded, error]);
+	}, [loaded, error, isLoading]);
 
+	// If assets aren't ready, keep showing the splash screen (render nothing)
 	if (!loaded && !error) return null;
 
 	return (
@@ -36,14 +51,8 @@ export default function RootLayout() {
 				animation: "fade_from_bottom",
 			}}
 		>
-			<Stack.Screen
-				name="(onboarding)"
-				options={{ headerShown: false, animation: "fade_from_bottom" }}
-			/>
-			<Stack.Screen
-				name="(auth_screens)"
-				options={{ headerShown: false, animation: "fade_from_bottom" }}
-			/>
+			<Stack.Screen name="(auth_screens)" />
+			<Stack.Screen name="(onboarding)" />
 		</Stack>
 	);
 }
