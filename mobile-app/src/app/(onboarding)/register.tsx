@@ -18,11 +18,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // Import FontAwesome for the Google Icon
 // Lucide Icons
 import { Image } from "expo-image";
-import { Eye, EyeOff, Lock, Mail, User, UserPlus } from "lucide-react-native";
+import { Eye, EyeOff, Lock, Mail, UserPlus } from "lucide-react-native";
 
 export default function RegisterScreen() {
 	const [passwordVisible, setPasswordVisible] = useState(false);
-	const [form, setForm] = useState({ name: "", email: "", password: "" });
+	const [form, setForm] = useState({
+		email: "",
+		password: "",
+		confirmPassword: "",
+	});
 
 	// Placeholder for Google Auth Logic
 	const handleGoogleSignup = () => {
@@ -72,34 +76,6 @@ export default function RegisterScreen() {
 
 							{/* FORM */}
 							<View className="gap-y-4">
-								{/* NAME INPUT */}
-								<Animated.View
-									entering={FadeInDown.delay(300).springify()}
-								>
-									<Text className="text-gray-400 mb-2 ml-1 text-xs font-medium uppercase tracking-wider">
-										Full Name
-									</Text>
-									<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-2 flex-row items-center">
-										<User
-											size={20}
-											color={
-												form.name
-													? "#CCFF00"
-													: "#6B7280"
-											}
-										/>
-										<TextInput
-											placeholder="John Doe"
-											placeholderTextColor="#4B5563"
-											value={form.name}
-											onChangeText={(t) =>
-												setForm({ ...form, name: t })
-											}
-											className="flex-1 ml-3 text-white text-base"
-										/>
-									</View>
-								</Animated.View>
-
 								{/* EMAIL INPUT */}
 								<Animated.View
 									entering={FadeInDown.delay(400).springify()}
@@ -181,6 +157,60 @@ export default function RegisterScreen() {
 									</View>
 								</Animated.View>
 
+								{/* CONFIRM PASS */}
+								<Animated.View
+									entering={FadeInDown.delay(500).springify()}
+								>
+									<Text className="text-gray-400 mb-2 ml-1 text-xs font-medium uppercase tracking-wider">
+										Confirm Password
+									</Text>
+									<View className="bg-white/5 border border-white/10 bg-r focus:border-neon/50 rounded-2xl px-4 py-2 flex-row items-center">
+										<Lock
+											size={20}
+											color={
+												form.confirmPassword
+													? form.confirmPassword ===
+														form.password
+														? "#CCFF00"
+														: "#f87171"
+													: "#6B7280"
+											}
+										/>
+										<TextInput
+											placeholder="••••••••"
+											placeholderTextColor="#4B5563"
+											secureTextEntry={!passwordVisible}
+											value={form.confirmPassword}
+											onChangeText={(t) =>
+												setForm({
+													...form,
+													confirmPassword: t,
+												})
+											}
+											className="flex-1 ml-3 text-white text-base"
+										/>
+										<TouchableOpacity
+											onPress={() =>
+												setPasswordVisible(
+													!passwordVisible,
+												)
+											}
+										>
+											{passwordVisible ? (
+												<EyeOff
+													size={20}
+													color="#6B7280"
+												/>
+											) : (
+												<Eye
+													size={20}
+													color="#6B7280"
+												/>
+											)}
+										</TouchableOpacity>
+									</View>
+								</Animated.View>
+
 								{/* REGISTER BUTTON */}
 								<Animated.View
 									entering={FadeInDown.delay(700).springify()}
@@ -189,7 +219,11 @@ export default function RegisterScreen() {
 									<TouchableOpacity
 										activeOpacity={0.8}
 										className="h-16 rounded-2xl flex-row items-center justify-center bg-neon shadow-2xl shadow-neon/20"
-										onPress={() => {}}
+										onPress={() =>
+											router.push(
+												"/(onboarding)/profile_completion",
+											)
+										}
 									>
 										<Text className="text-lg font-black mr-2 text-black">
 											SIGN UP
