@@ -13,7 +13,13 @@ export class MembershipPlan {
   id: string;
 
   @Column()
-  name: string;
+  desc: string;
+
+  @Column()
+  title: string;
+
+  @Column()
+  iconName: string;
 
   @Index()
   @Column({
@@ -24,10 +30,6 @@ export class MembershipPlan {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
-
-  // Used for prepaid deduction per tap
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  sessionPrice: number;
 
   // Used for monthly
   @Column({ type: 'int', nullable: true })

@@ -17,11 +17,12 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 // Import FontAwesome for the Google Icon
 // Lucide Icons
-import { supabase } from "@/_lib/supabase";
+import { useAuth } from "@/context/authContext";
 import { Image } from "expo-image";
 import { Eye, EyeOff, Lock, Mail, UserPlus } from "lucide-react-native";
 
 export default function RegisterScreen() {
+	const { signUp } = useAuth();
 	const [passwordVisible, setPasswordVisible] = useState(false);
 	const [form, setForm] = useState({
 		email: "sample@email.com",
@@ -30,19 +31,7 @@ export default function RegisterScreen() {
 	});
 
 	const handleSignup = async () => {
-		const { data, error } = await supabase.auth.signUp({
-			email: form.email,
-			password: form.password,
-		});
-
-		if (error) {
-			console.log("register error:", error.message);
-			return;
-		}
-
-		if (data.session) {
-			router.replace("/(onboarding)/profile_completion");
-		}
+		await signUp(form.email, form.confirmPassword);
 	};
 
 	// Placeholder for Google Auth Logic

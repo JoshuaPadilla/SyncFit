@@ -1,5 +1,4 @@
 import {
-  IsEmail,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
@@ -7,9 +6,6 @@ import {
 } from 'class-validator';
 
 export class CreateProfileDto {
-  @IsEmail()
-  email: string;
-
   @IsString()
   @IsNotEmpty()
   firstName: string;
@@ -19,6 +15,9 @@ export class CreateProfileDto {
   lastName: string;
 
   @IsOptional()
-  @IsPhoneNumber() // Validates international phone formats
+  @IsPhoneNumber('PH') // Validates international phone formats
   phoneNumber?: string;
+
+  @IsString()
+  membershipPlanId: string;
 }

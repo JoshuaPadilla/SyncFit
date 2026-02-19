@@ -23,3 +23,24 @@ api.interceptors.request.use(
 		return Promise.reject(error);
 	},
 );
+
+api.interceptors.response.use(
+	(response) => response,
+	(error) => {
+		if (error.response) {
+			// The server responded with a status code outside the 2xx range
+			console.error("❌ API ERROR:", {
+				status: error.response.status,
+				data: error.response.data, // THIS is what you need!
+				path: error.config.url,
+			});
+		} else if (error.request) {
+			// The request was made but no response was received
+			console.error("🌐 NETWORK ERROR: No response received.");
+		} else {
+			// Something happened in setting up the request
+			console.error("⚙️ AXIOS CONFIG ERROR:", error.message);
+		}
+		return Promise.reject(error);
+	},
+);

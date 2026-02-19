@@ -17,15 +17,14 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Post()
   createUser(@Request() req, @Body() createProfileDto: CreateProfileDto) {
-    console.log(req.user);
-
-    // return this.userService.createProfile(createProfileDto);
+    return this.userService.createProfile(createProfileDto, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('logged-user')
   fetchLoggedUser(@Request() req) {
-    console.log(req.user.id);
-    // return this.userService.fetchLoggedUser(req.user.id);
+    console.log(req.user);
+    // console.log(req.user.id);
+    return this.userService.fetchLoggedUser(req.user.id);
   }
 }

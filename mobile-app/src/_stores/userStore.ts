@@ -4,27 +4,24 @@ import { User } from "@/types/user";
 import { create } from "zustand";
 
 type StoreProps = {
-	createUser: (token: string, data: CreateUserDto) => Promise<User>;
-	fetchLoggedUser: (token: string) => Promise<User>;
+	createUser: (data: CreateUserDto) => Promise<User>;
+	fetchLoggedUser: () => Promise<User | null>;
 };
 
 export const useUserStore = create<StoreProps>((set) => ({
-	createUser: async (token, data) => {
-		const res = await api.post("user", data, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
+	createUser: async (data) => {
+		const res = await api.post("user", data);
 
 		return res.data;
 	},
-	fetchLoggedUser: async (token) => {
-		const res = await api.get("user/logged-user", {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
+	fetchLoggedUser: async () => {
+		try {
+			const res = await api.get("user/logged-user");
 
-		return res.data;
+			console.log("data:", res.data);
+			return res.data;
+		} catch (error: any) {
+			console.log(error);
+		}
 	},
 }));

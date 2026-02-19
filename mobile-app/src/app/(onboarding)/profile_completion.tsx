@@ -1,21 +1,26 @@
+import { useMembershipPlansStore } from "@/_stores/membershipPlanStore";
 import { useUserStore } from "@/_stores/userStore";
 import { useAuth } from "@/context/authContext";
+import { validateOnboardingStep } from "@/helpers/profile_completion_form_validation";
+import { MembershipPlan } from "@/types/membership_plan";
+// import { MembershipPlan } from "@/types/membership_plan"; // Ensure this type matches the new JSON or use the interface below
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
-	ArrowLeft,
 	ArrowRight,
 	Calendar,
 	CheckCircle2,
 	CreditCard,
 	Crown,
 	Footprints,
+	LucideIcon,
 	Phone,
 	User,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+	ActivityIndicator,
+	Alert,
 	Keyboard,
 	KeyboardAvoidingView,
 	LayoutAnimation,
@@ -34,48 +39,30 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// --- TYPES & CONSTANTS ---
-enum MembershipType {
-	ANNUALLY = "annually",
-	MONTHLY = "monthly",
-	PREPAID = "prepaid",
-	WALKIN = "walkin",
-}
+// --- TYPES & HELPERS ---
 
-const PLANS = [
-	{
-		id: MembershipType.ANNUALLY,
-		title: "Annually",
-		price: "$999/yr",
-		icon: Crown,
-		desc: "Best value for committed members.",
-	},
-	{
-		id: MembershipType.MONTHLY,
-		title: "Monthly",
-		price: "$99/mo",
-		icon: Calendar,
-		desc: "Flexible billing, cancel anytime.",
-	},
-	{
-		id: MembershipType.PREPAID,
-		title: "Prepaid",
-		price: "$500",
-		icon: CreditCard,
-		desc: "Pay once, use until credits run out.",
-	},
-	{
-		id: MembershipType.WALKIN,
-		title: "Walk-In",
-		price: "$15/visit",
-		icon: Footprints,
-		desc: "No commitment, pay as you go.",
-	},
-];
+// Define the shape based on your JSON log
+
+// 1. Icon Mapping: Convert string names to Components
+const iconMap: Record<string, LucideIcon> = {
+	Crown: Crown,
+	Calendar: Calendar,
+	CreditCard: CreditCard,
+	Footprints: Footprints,
+};
+
+const getIcon = (name: string) => {
+	return iconMap[name] || Crown; // Default to Crown if icon name not found
+};
+
+const capitalize = (s: string) => {
+	if (!s) return "";
+	return s.charAt(0).toUpperCase() + s.slice(1);
+};
 
 // --- COMPONENTS ---
 
-// 1. Plan Card Component (Memoized)
+// 2. Updated Plan Card Component
 const PlanCard = React.memo(
 	({
 		item,
@@ -83,12 +70,20 @@ const PlanCard = React.memo(
 		onPress,
 		index,
 	}: {
-		item: (typeof PLANS)[0];
+		item: MembershipPlan;
 		isSelected: boolean;
 		onPress: (id: string) => void;
 		index: number;
 	}) => {
-		const Icon = item.icon;
+		// Get the icon component based on the string name
+		const Icon = getIcon(item.iconName);
+
+		// MAPPING LOGIC:
+		// API 'type' -> UI Title ("Annually")
+		// API 'title' -> UI Price Display ("₱10,999/yr")
+		const displayTitle = capitalize(item.type);
+		const displayPrice = item.title;
+
 		return (
 			<Animated.View
 				entering={FadeInDown.delay(100 + index * 100).springify()}
@@ -124,10 +119,10 @@ const PlanCard = React.memo(
 							isSelected ? "text-white" : "text-gray-300"
 						}`}
 					>
-						{item.title}
+						{displayTitle}
 					</Text>
 					<Text className="text-neon text-xl font-black mb-1">
-						{item.price}
+						{displayPrice}
 					</Text>
 					<Text className="text-gray-400 text-xs font-medium">
 						{item.desc}
@@ -140,48 +135,99 @@ const PlanCard = React.memo(
 
 // --- MAIN SCREEN ---
 export default function MultiStepOnboarding() {
+	const { fetchPlans } = useMembershipPlansStore();
 	const { createUser } = useUserStore();
-	const { session } = useAuth();
+	const { refreshUser } = useAuth();
 
-	// Unified State
+	// State for plans
+	const [plans, setPlans] = useState<MembershipPlan[]>([]);
+	const [loadingPlans, setLoadingPlans] = useState(true);
+
+	// Unified Form State
 	const [step, setStep] = useState(1); // 1: Profile, 2: Membership
 	const [form, setForm] = useState({
-		firstName: "",
-		lastName: "",
-		phoneNumber: "",
-		selectedPlan: "",
+		firstName: "Joshua",
+		lastName: "Padilla",
+		phoneNumber: "9354872804",
+		membershipPlanId: "",
 	});
 
 	// Actions
 	const handleNext = () => {
-		// Basic validation
-		if (step === 1) {
-			if (!form.firstName || !form.lastName || !form.phoneNumber) {
-				// Add toast or alert here
-				console.warn("Please fill all fields");
-				return;
-			}
-			LayoutAnimation.configureNext(
-				LayoutAnimation.Presets.easeInEaseOut,
-			);
-			setStep(2);
+		// 1. Prepare the formatted phone number
+		let finalPhone = form.phoneNumber.trim();
+		if (!finalPhone.startsWith("+")) {
+			const stripped = finalPhone.startsWith("0")
+				? finalPhone.substring(1)
+				: finalPhone;
+			finalPhone = `+63${stripped}`;
 		}
-	};
 
-	const handleBack = () => {
+		// 2. Create the object that will actually be sent/validated
+		const formToValidate = { ...form, phoneNumber: finalPhone };
+
+		// 3. VALIDATE THE TEMP OBJECT, NOT 'form'
+		const errors = validateOnboardingStep(formToValidate, 1);
+
+		if (errors.length > 0) {
+			Alert.alert("Invalid Input", errors[0]);
+			return;
+		}
+
+		// 4. Save the valid, formatted data to state
+		setForm(formToValidate);
+
+		// 5. Proceed
 		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-		setStep(1);
+		setStep(2);
 	};
 
 	const handleFinish = async () => {
-		console.log("Submitting:", form);
-		// await createUser(form.firstName, form.lastName, form.phoneNumber, form.selectedPlan);
-		router.push("/(auth_screens)/(user)/user_home"); // Example navigation
+		const errors = validateOnboardingStep(form, 2);
+
+		if (errors.length > 0) {
+			Alert.alert("Selection Required", errors[0]);
+			return;
+		}
+
+		try {
+			await createUser(form);
+			await refreshUser();
+		} catch (error) {
+			Alert.alert("Error", "Could not complete registration.");
+		}
 	};
+	// await createUser(...)
 
 	const updateForm = (key: keyof typeof form, value: string) => {
 		setForm((prev) => ({ ...prev, [key]: value }));
 	};
+
+	// 3. Fetch Plans Effect
+	// We keep this simple to avoid the "setPlans is not a function" error
+	useEffect(() => {
+		let isMounted = true;
+
+		const loadData = async () => {
+			try {
+				const data = await fetchPlans();
+
+				if (isMounted && data) {
+					setPlans(data);
+				}
+			} catch (error) {
+				console.error("Failed to fetch plans", error);
+			} finally {
+				if (isMounted) setLoadingPlans(false);
+			}
+		};
+
+		loadData();
+
+		return () => {
+			isMounted = false;
+		};
+	}, []); // Empty dependency array ensures this runs once
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -212,15 +258,6 @@ export default function MultiStepOnboarding() {
 						>
 							{/* HEADER / PROGRESS */}
 							<View className="flex-row items-center justify-between mb-8 mt-4">
-								{step === 2 && (
-									<TouchableOpacity
-										onPress={handleBack}
-										className="w-10 h-10 bg-white/5 rounded-full items-center justify-center mr-4"
-									>
-										<ArrowLeft size={20} color="white" />
-									</TouchableOpacity>
-								)}
-
 								<View className="flex-1">
 									<View className="flex-row gap-2 mb-2">
 										<View
@@ -310,39 +347,57 @@ export default function MultiStepOnboarding() {
 										</View>
 
 										{/* Phone */}
-										<View>
-											<Text className="text-gray-400 mb-2 ml-1 text-xs font-medium uppercase tracking-wider">
-												Phone Number
+										<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-3.5 flex-row items-center">
+											<Phone
+												size={20}
+												color={
+													form.phoneNumber
+														? "#CCFF00"
+														: "#6B7280"
+												}
+											/>
+
+											{/* Permanent Visual Country Code */}
+											<Text className="text-white/50 text-base font-medium ml-3">
+												+63
 											</Text>
-											<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-3.5 flex-row items-center">
-												<Phone
-													size={20}
-													color={
-														form.phoneNumber
-															? "#CCFF00"
-															: "#6B7280"
-													}
-												/>
-												<TextInput
-													placeholder="+1 (555) 000-0000"
-													placeholderTextColor="#4B5563"
-													keyboardType="phone-pad"
-													value={form.phoneNumber}
-													onChangeText={(t) =>
-														updateForm(
-															"phoneNumber",
-															t,
-														)
-													}
-													className="flex-1 ml-3 text-white text-base font-medium"
-												/>
-											</View>
+
+											<TextInput
+												placeholder="912 345 6789"
+												keyboardType="phone-pad"
+												maxLength={10} // 10 digits after +63
+												value={form.phoneNumber.replace(
+													"+63",
+													"",
+												)}
+												onChangeText={(t) => {
+													const cleanNumber =
+														t.replace(/\D/g, "");
+													updateForm(
+														"phoneNumber",
+														`+63${cleanNumber}`,
+													);
+												}}
+												className="flex-1 ml-3 text-white text-base font-medium"
+												// ...
+											/>
 										</View>
 									</View>
 
 									<TouchableOpacity
+										disabled={
+											!form.firstName ||
+											!form.lastName ||
+											!form.phoneNumber
+										}
 										activeOpacity={0.8}
-										className="h-16 rounded-2xl flex-row items-center justify-center bg-neon shadow-lg shadow-neon/20 mt-12"
+										className={`${
+											!form.firstName ||
+											!form.lastName ||
+											!form.phoneNumber
+												? "bg-neon/20"
+												: "bg-neon"
+										} h-16 rounded-2xl flex-row items-center justify-center  shadow-lg shadow-neon/20 mt-12`}
 										onPress={handleNext}
 									>
 										<Text className="text-lg font-black mr-2 text-black">
@@ -368,41 +423,56 @@ export default function MultiStepOnboarding() {
 									</View>
 
 									<View>
-										{PLANS.map((plan, index) => (
-											<PlanCard
-												key={plan.id}
-												item={plan}
-												index={index}
-												isSelected={
-													form.selectedPlan ===
-													plan.id
-												}
-												onPress={(id) =>
-													updateForm(
-														"selectedPlan",
-														id,
-													)
-												}
-											/>
-										))}
+										{loadingPlans ? (
+											<View className="py-20">
+												<ActivityIndicator
+													size="large"
+													color="#CCFF00"
+												/>
+												<Text className="text-gray-400 text-center mt-4">
+													Loading plans...
+												</Text>
+											</View>
+										) : (
+											// 4. MAP DYNAMIC PLANS INSTEAD OF HARDCODED ARRAY
+											plans.map((plan, index) => (
+												<PlanCard
+													key={plan.id}
+													item={plan}
+													index={index}
+													isSelected={
+														form.membershipPlanId ===
+														plan.id
+													}
+													onPress={(id) =>
+														updateForm(
+															"membershipPlanId",
+															id,
+														)
+													}
+												/>
+											))
+										)}
 									</View>
 
-									<TouchableOpacity
-										disabled={!form.selectedPlan}
-										activeOpacity={0.8}
-										className={`h-16 rounded-2xl flex-row items-center justify-center shadow-lg mt-8 ${
-											form.selectedPlan
-												? "bg-neon shadow-neon/20"
-												: "bg-gray-800"
-										}`}
-										onPress={handleFinish}
-									>
-										<Text
-											className={`text-lg font-black ${form.selectedPlan ? "text-black" : "text-gray-500"}`}
+									{!loadingPlans && (
+										<TouchableOpacity
+											disabled={!form.membershipPlanId}
+											activeOpacity={0.8}
+											className={`h-16 rounded-2xl flex-row items-center justify-center shadow-lg mt-8 ${
+												form.membershipPlanId
+													? "bg-neon shadow-neon/20"
+													: "bg-gray-800"
+											}`}
+											onPress={handleFinish}
 										>
-											COMPLETE SETUP
-										</Text>
-									</TouchableOpacity>
+											<Text
+												className={`text-lg font-black ${form.membershipPlanId ? "text-black" : "text-gray-500"}`}
+											>
+												COMPLETE SETUP
+											</Text>
+										</TouchableOpacity>
+									)}
 								</Animated.View>
 							)}
 						</ScrollView>

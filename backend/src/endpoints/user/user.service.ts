@@ -10,13 +10,17 @@ export class UserService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
 
-  async createProfile(createProfileDto: CreateProfileDto) {
-    const newUser = this.userRepo.create(createProfileDto);
+  async createProfile(
+    createProfileDto: CreateProfileDto,
+    user: { id: string; email: string },
+  ) {
+    const newUser = this.userRepo.create({ ...createProfileDto, ...user });
 
     return await this.userRepo.save(newUser);
   }
 
   async fetchLoggedUser(userId: string) {
+    console.log('User Id:', userId);
     return await this.userRepo.findOne({ where: { id: userId } });
   }
 }

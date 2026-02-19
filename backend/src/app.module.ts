@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { MembershipPlanModule } from './endpoints/membership_plan/membership_plan.module';
 import { UserModule } from './endpoints/user/user.module';
 import { EntryLog } from './entities/entry_log.entity';
 import { Member } from './entities/member.entity';
@@ -26,6 +27,7 @@ import { User } from './entities/user.entity';
       entities: [User, EntryLog, Member, MembershipPlan, Payment],
     }),
     UserModule,
+    MembershipPlanModule,
   ],
   controllers: [AppController],
   providers: [AppService],

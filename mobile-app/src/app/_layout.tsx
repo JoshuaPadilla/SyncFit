@@ -2,6 +2,7 @@ import { AuthProvider, useAuth } from "@/context/authContext";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { View } from "lucide-react-native";
 import { useEffect } from "react";
 import "./global.css";
 
@@ -17,7 +18,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-	const { isLoading } = useAuth();
+	const { isLoading, session } = useAuth();
 	const [loaded, error] = useFonts({
 		// Inter Weights
 		"Inter-Light": require("../../assets/fonts/Inter_28pt-Light.ttf"),
@@ -35,14 +36,25 @@ function RootLayoutNav() {
 	});
 
 	useEffect(() => {
+		if (error) throw error;
+	}, [error]);
+
+	useEffect(() => {
 		// Hide splash screen only when BOTH fonts are loaded AND auth is checked
-		if ((loaded || error) && !isLoading) {
+		if (loaded && !isLoading) {
 			SplashScreen.hideAsync();
 		}
 	}, [loaded, error, isLoading]);
 
 	// If assets aren't ready, keep showing the splash screen (render nothing)
-	if (!loaded && !error) return null;
+	if (!loaded || isLoading)
+		return (
+			<View style={{ flex: 1, backgroundColor: "#020807" }}>
+				{/* Optional: You can put an <Image /> here that 
+                   matches your splash icon to make reloads seamless.
+                */}
+			</View>
+		);
 
 	return (
 		<Stack
@@ -51,6 +63,7 @@ function RootLayoutNav() {
 				animation: "fade_from_bottom",
 			}}
 		>
+			<Stack.Screen name="index" />
 			<Stack.Screen name="(auth_screens)" />
 			<Stack.Screen name="(onboarding)" />
 		</Stack>

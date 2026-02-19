@@ -1,7 +1,6 @@
 import {
   IsEnum,
   IsInt,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -10,10 +9,6 @@ import {
 import { MembershipType } from 'src/enums/membership_type.enum';
 
 export class CreateMembershipPlanDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
   @IsEnum(MembershipType)
   type: MembershipType;
 
@@ -21,10 +16,14 @@ export class CreateMembershipPlanDto {
   @Min(0)
   price: number;
 
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  sessionPrice?: number;
+  @IsString()
+  title: string;
+
+  @IsString()
+  iconName: string;
+
+  @IsString()
+  desc: string;
 
   @IsOptional()
   @IsInt()

@@ -21,10 +21,6 @@ const OnboardingLayout = () => {
 				name="profile_completion"
 				options={{ headerShown: false, animation: "fade_from_bottom" }}
 			/>
-			<Stack.Screen
-				name="membership_selection"
-				options={{ headerShown: false, animation: "fade_from_bottom" }}
-			/>
 		</Stack>
 	);
 };

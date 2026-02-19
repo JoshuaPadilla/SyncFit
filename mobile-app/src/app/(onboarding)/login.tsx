@@ -17,13 +17,19 @@ import {
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 // Using Lucide Icons as requested
+import { useAuth } from "@/context/authContext";
 import { Image } from "expo-image";
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react-native";
 
 export default function LoginScreen() {
+	const { signIn } = useAuth();
 	const [passwordVisible, setPasswordVisible] = useState(false);
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const [email, setEmail] = useState("sample@email.com");
+	const [password, setPassword] = useState("12345678");
+
+	const handleLogin = async () => {
+		await signIn(email, password);
+	};
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -156,7 +162,7 @@ export default function LoginScreen() {
 									<TouchableOpacity
 										activeOpacity={0.8}
 										className="bg-neon h-16 rounded-2xl flex-row items-center justify-center shadow-2xl shadow-neon/20"
-										onPress={() => {}}
+										onPress={handleLogin}
 									>
 										<Text className="text-black text-lg font-black mr-2">
 											SIGN IN
