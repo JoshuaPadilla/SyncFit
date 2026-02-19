@@ -1,5 +1,6 @@
 import { supabase } from "@/_lib/supabase";
 import { useUserStore } from "@/_stores/userStore";
+import { jsonFormatter } from "@/helpers/json_formater";
 import { User } from "@/types/user";
 import type { Session } from "@supabase/supabase-js";
 import { useRouter } from "expo-router";
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 
+	jsonFormatter(user);
 	const refreshUser = async () => {
 		try {
 			const loggedUser = await fetchLoggedUser();
@@ -82,7 +84,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				} = await supabase.auth.getSession();
 				setSession(currentSession);
 
-				console.log(currentSession && "has current session");
 				if (currentSession) {
 					console.log("fetching logged user");
 					await refreshUser(); // Use the new function

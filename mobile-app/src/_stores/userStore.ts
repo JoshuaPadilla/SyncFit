@@ -18,7 +18,6 @@ export const useUserStore = create<StoreProps>((set) => ({
 		try {
 			const res = await api.get("user/logged-user");
 
-			console.log("data:", res.data);
 			return res.data;
 		} catch (error: any) {
 			console.log(error);

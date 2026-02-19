@@ -23,7 +23,6 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('logged-user')
   fetchLoggedUser(@Request() req) {
-    console.log(req.user);
     // console.log(req.user.id);
     return this.userService.fetchLoggedUser(req.user.id);
   }

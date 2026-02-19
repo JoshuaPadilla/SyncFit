@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MembershipPlanModule } from './endpoints/membership_plan/membership_plan.module';
+import { RfidModule } from './endpoints/rfid/rfid.module';
 import { UserModule } from './endpoints/user/user.module';
 import { EntryLog } from './entities/entry_log.entity';
 import { Member } from './entities/member.entity';
@@ -28,6 +29,7 @@ import { User } from './entities/user.entity';
     }),
     UserModule,
     MembershipPlanModule,
+    RfidModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -176,12 +176,13 @@ export default function OnboardingScreen() {
 		if (currentIndex < SLIDES.length - 1) {
 			slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
 		} else {
+			await setItemAsync("hasOpened", "true");
+
 			screenOpacity.value = withTiming(
 				0,
 				{ duration: 300 },
 				async (finished) => {
 					if (finished) {
-						await setItemAsync("hasOpened", "true");
 						// Navigate after animation completes
 						runOnJS(router.replace)("/(onboarding)/register");
 					}
