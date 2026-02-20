@@ -13,6 +13,18 @@ const AuthScreensLayout = () => {
 				name="(user)"
 				options={{ headerShown: false, animation: "fade_from_bottom" }}
 			/>
+			<Stack.Screen
+				name="payment-test"
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
+			/>
+			<Stack.Screen
+				name="payment_success_test"
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
+			/>
+			<Stack.Screen
+				name="payment_failed_test"
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
+			/>
 		</Stack>
 	);
 };

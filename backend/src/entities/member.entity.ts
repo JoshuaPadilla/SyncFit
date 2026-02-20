@@ -1,17 +1,18 @@
 import { MembershipStatus } from 'src/enums/membership_status.enum';
-import { MembershipType } from 'src/enums/membership_type.enum';
 import {
   Column,
   CreateDateColumn,
   Entity,
   Index,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { EntryLog } from './entry_log.entity';
+import { MembershipPlan } from './member_plan.entity';
 import { Payment } from './payment.entity';
 import { User } from './user.entity';
 
@@ -25,14 +26,14 @@ export class Member {
   user: User;
 
   @Index()
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   rfidUid: string;
 
-  @Column({
-    type: 'enum',
-    enum: MembershipType,
+  @ManyToOne(() => MembershipPlan, (plan) => plan.members, {
+    nullable: true, // Set to false if every member MUST have a plan
+    onDelete: 'SET NULL',
   })
-  membershipType: MembershipType;
+  membershipPlan: MembershipPlan;
 
   @Index()
   @Column({

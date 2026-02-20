@@ -112,20 +112,22 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		// Note: You can add logic here to check 'segments' if you want to avoid
 		// redirecting users who are already on the correct screen.
 
-		if (isFirstTime) {
-			router.replace("/");
-		}
+		router.replace("/(auth_screens)/payment-test");
 
-		if (!session) {
-			// No session -> Login
-			router.replace("/(onboarding)/login");
-		} else if (!user) {
-			// Session but no user data -> Complete Profile
-			router.replace("/profile_completion");
-		} else {
-			// All good -> Home
-			router.replace("/(auth_screens)/(user)/user_home");
-		}
+		// if (isFirstTime) {
+		// 	router.replace("/");
+		// }
+
+		// if (!session) {
+		// 	// No session -> Login
+		// 	router.replace("/(onboarding)/login");
+		// } else if (!user) {
+		// 	// Session but no user data -> Complete Profile
+		// 	router.replace("/profile_completion");
+		// } else {
+		// 	// All good -> Home
+		// 	router.replace("/(auth_screens)/(user)/user_home");
+		// }
 	}, [isLoading, session, user]);
 
 	return (

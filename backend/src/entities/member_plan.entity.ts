@@ -4,8 +4,10 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Member } from './member.entity';
 
 @Entity('membership_plans')
 export class MembershipPlan {
@@ -34,6 +36,9 @@ export class MembershipPlan {
   // Used for monthly
   @Column({ type: 'int', nullable: true })
   durationDays: number;
+
+  @OneToMany(() => Member, (member) => member.membershipPlan)
+  members: Member[];
 
   @CreateDateColumn()
   createdAt: Date;
