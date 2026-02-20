@@ -26,6 +26,9 @@ export class PaymentService {
           show_description: true,
           show_line_items: true,
           payment_method_types: ['gcash'],
+          metadata: {
+            userId: 'sample', // Use the actual user's ID here
+          },
           line_items: [
             {
               currency: 'PHP',
@@ -35,7 +38,7 @@ export class PaymentService {
             },
           ],
           success_url:
-            'intent://login/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end',
+            'intent://payment_success_test/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end',
           failed_url: 'myapp://payment-failed',
           description: 'Gym Load Top-up',
         },

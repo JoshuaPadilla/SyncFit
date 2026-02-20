@@ -1,14 +1,19 @@
-import { useAuth } from "@/context/authContext";
+import { Stack } from "expo-router";
 import React from "react";
-import { Button, View } from "react-native";
 
 const UserLayout = () => {
-	const { signOut } = useAuth();
-
 	return (
-		<View className="flex-1 justify-center items-center p-4 bg-darkBgTop">
-			<Button title="Signout" onPress={signOut} />
-		</View>
+		<Stack
+			screenOptions={{
+				headerShown: false,
+				animation: "fade_from_bottom",
+			}}
+		>
+			<Stack.Screen
+				name="user_home"
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
+			/>
+		</Stack>
 	);
 };
 
