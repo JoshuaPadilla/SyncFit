@@ -10,7 +10,9 @@ async function bootstrap() {
     transport: Transport.MQTT,
     options: {
       subscribeOptions: { qos: 0 }, // Match the QoS in your screenshot
-      url: 'mqtt://broker.emqx.io:1883', // Public testing broker
+      url: process.env.MQTT_BROKER_IP,
+      username: process.env.MQTT_USERNAME,
+      password: process.env.MQTT_PASSWORD,
     },
   });
 

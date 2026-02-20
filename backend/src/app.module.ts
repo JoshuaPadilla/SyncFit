@@ -27,6 +27,7 @@ import { User } from './entities/user.entity';
       },
       entities: [User, EntryLog, Member, MembershipPlan, Payment],
     }),
+
     UserModule,
     MembershipPlanModule,
     RfidModule,

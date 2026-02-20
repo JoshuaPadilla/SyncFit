@@ -6,9 +6,9 @@ import { RfidService } from './rfid.service';
 export class RfidController {
   constructor(private readonly rfidService: RfidService) {}
 
-  @MessagePattern('project/rfid/tap')
+  @MessagePattern('gym/rfid/scan')
   handleRfidTap(@Payload() data: any) {
     console.log(data);
-    // return this.rfidService.processTap(data);
+    return this.rfidService.handleRfidTap(data);
   }
 }
