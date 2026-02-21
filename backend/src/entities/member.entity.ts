@@ -12,7 +12,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { EntryLog } from './entry_log.entity';
-import { MembershipPlan } from './member_plan.entity';
+import { MembershipPlan } from './membership_plan.entity';
 import { Payment } from './payment.entity';
 import { User } from './user.entity';
 
@@ -47,15 +47,20 @@ export class Member {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   balance: number;
 
-  // For monthly
-  @Column({ type: 'timestamp', nullable: true })
-  expirationDate: Date;
-
   @OneToMany(() => EntryLog, (log) => log.member)
   entryLogs: EntryLog[];
 
   @OneToMany(() => Payment, (payment) => payment.member)
   payments: Payment[];
+
+  @Column({ type: 'timestamp', nullable: true })
+  dateActivated: Date; // The FIRST time they ever joined
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastRenewalDate: Date; // The most recent time they paid
+
+  @Column({ type: 'timestamp', nullable: true })
+  expirationDate: Date; // current date + plan duration
 
   @CreateDateColumn()
   createdAt: Date;

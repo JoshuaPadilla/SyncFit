@@ -1,13 +1,16 @@
 import { useMembershipPlansStore } from "@/_stores/membershipPlanStore";
+import { usePaymentStore } from "@/_stores/paymentStore";
 import { useUserStore } from "@/_stores/userStore";
+import CustomButton from "@/components/custom_button";
 import { useAuth } from "@/context/authContext";
 import { validateOnboardingStep } from "@/helpers/profile_completion_form_validation";
 import { MembershipPlan } from "@/types/membership_plan";
 // import { MembershipPlan } from "@/types/membership_plan"; // Ensure this type matches the new JSON or use the interface below
 import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as WebBrowser from "expo-web-browser";
 import {
-	ArrowRight,
 	Calendar,
 	CheckCircle2,
 	CreditCard,
@@ -39,162 +42,83 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// --- TYPES & HELPERS ---
-
-// Define the shape based on your JSON log
-
-// 1. Icon Mapping: Convert string names to Components
-const iconMap: Record<string, LucideIcon> = {
-	Crown: Crown,
-	Calendar: Calendar,
-	CreditCard: CreditCard,
-	Footprints: Footprints,
-};
-
-const getIcon = (name: string) => {
-	return iconMap[name] || Crown; // Default to Crown if icon name not found
-};
-
-const capitalize = (s: string) => {
-	if (!s) return "";
-	return s.charAt(0).toUpperCase() + s.slice(1);
-};
-
-// --- COMPONENTS ---
-
-// 2. Updated Plan Card Component
-const PlanCard = React.memo(
-	({
-		item,
-		isSelected,
-		onPress,
-		index,
-	}: {
-		item: MembershipPlan;
-		isSelected: boolean;
-		onPress: (id: string) => void;
-		index: number;
-	}) => {
-		// Get the icon component based on the string name
-		const Icon = getIcon(item.iconName);
-
-		// MAPPING LOGIC:
-		// API 'type' -> UI Title ("Annually")
-		// API 'title' -> UI Price Display ("₱10,999/yr")
-		const displayTitle = capitalize(item.type);
-		const displayPrice = item.title;
-
-		return (
-			<Animated.View
-				entering={FadeInDown.delay(100 + index * 100).springify()}
-				className="mb-4"
-			>
-				<TouchableOpacity
-					activeOpacity={0.9}
-					onPress={() => onPress(item.id)}
-					className={`p-5 rounded-3xl border ${
-						isSelected
-							? "bg-neon/10 border-neon"
-							: "bg-white/5 border-white/10"
-					}`}
-				>
-					<View className="flex-row items-center justify-between mb-2">
-						<View
-							className={`w-10 h-10 rounded-full items-center justify-center ${
-								isSelected ? "bg-neon" : "bg-white/10"
-							}`}
-						>
-							<Icon
-								size={20}
-								color={isSelected ? "#000000" : "#889999"}
-							/>
-						</View>
-						{isSelected && (
-							<CheckCircle2 size={24} color="#00F0C5" />
-						)}
-					</View>
-
-					<Text
-						className={`text-lg font-bold mb-1 ${
-							isSelected ? "text-white" : "text-gray-300"
-						}`}
-					>
-						{displayTitle}
-					</Text>
-					<Text className="text-neon text-xl font-black mb-1">
-						{displayPrice}
-					</Text>
-					<Text className="text-gray-400 text-xs font-medium">
-						{item.desc}
-					</Text>
-				</TouchableOpacity>
-			</Animated.View>
-		);
-	},
-);
-
 // --- MAIN SCREEN ---
 export default function MultiStepOnboarding() {
+	const { stepParam } = useLocalSearchParams();
 	const { fetchPlans } = useMembershipPlansStore();
 	const { createUser } = useUserStore();
+	const { createCheckoutSession } = usePaymentStore();
 	const { refreshUser } = useAuth();
 
 	// State for plans
 	const [plans, setPlans] = useState<MembershipPlan[]>([]);
 	const [loadingPlans, setLoadingPlans] = useState(true);
+	const [isLoading, setIsLoading] = useState(false);
+
+	const [selectedPlan, setSelectedPlan] = useState("");
 
 	// Unified Form State
-	const [step, setStep] = useState(1); // 1: Profile, 2: Membership
+	const [step, setStep] = useState(stepParam ? Number(stepParam) : 1); // 1: Profile, 2: Membership
 	const [form, setForm] = useState({
 		firstName: "Joshua",
 		lastName: "Padilla",
 		phoneNumber: "9354872804",
-		membershipPlanId: "",
 	});
 
 	// Actions
-	const handleNext = () => {
-		// 1. Prepare the formatted phone number
-		let finalPhone = form.phoneNumber.trim();
-		if (!finalPhone.startsWith("+")) {
-			const stripped = finalPhone.startsWith("0")
-				? finalPhone.substring(1)
-				: finalPhone;
-			finalPhone = `+63${stripped}`;
+	const handleNext = async () => {
+		try {
+			setIsLoading(true);
+
+			// 1. Prepare the formatted phone number
+			let finalPhone = form.phoneNumber.trim();
+			if (!finalPhone.startsWith("+")) {
+				const stripped = finalPhone.startsWith("0")
+					? finalPhone.substring(1)
+					: finalPhone;
+				finalPhone = `+63${stripped}`;
+			}
+
+			// 2. Create the object that will actually be sent/validated
+			const formToValidate = { ...form, phoneNumber: finalPhone };
+
+			// 3. VALIDATE THE TEMP OBJECT, NOT 'form'
+			const errors = validateOnboardingStep(formToValidate);
+
+			if (errors.length > 0) {
+				Alert.alert("Invalid Input", errors[0]);
+				return;
+			}
+
+			// 4. Save the valid, formatted data to state
+			setForm(formToValidate);
+			await createUser(form);
+
+			// 5. Proceed
+			LayoutAnimation.configureNext(
+				LayoutAnimation.Presets.easeInEaseOut,
+			);
+			setStep(2);
+		} catch (error) {
+			console.log(error);
+		} finally {
+			setIsLoading(false);
 		}
-
-		// 2. Create the object that will actually be sent/validated
-		const formToValidate = { ...form, phoneNumber: finalPhone };
-
-		// 3. VALIDATE THE TEMP OBJECT, NOT 'form'
-		const errors = validateOnboardingStep(formToValidate, 1);
-
-		if (errors.length > 0) {
-			Alert.alert("Invalid Input", errors[0]);
-			return;
-		}
-
-		// 4. Save the valid, formatted data to state
-		setForm(formToValidate);
-
-		// 5. Proceed
-		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-		setStep(2);
 	};
 
 	const handleFinish = async () => {
-		const errors = validateOnboardingStep(form, 2);
-
-		if (errors.length > 0) {
-			Alert.alert("Selection Required", errors[0]);
-			return;
-		}
-
 		try {
-			await createUser(form);
-			await refreshUser();
+			setIsLoading(true);
+
+			const url = await createCheckoutSession({
+				membershipPlanId: selectedPlan,
+			});
+
+			await WebBrowser.openBrowserAsync(url);
 		} catch (error) {
 			Alert.alert("Error", "Could not complete registration.");
+		} finally {
+			setIsLoading(false);
 		}
 	};
 	// await createUser(...)
@@ -322,7 +246,7 @@ export default function MultiStepOnboarding() {
 											<Text className="text-gray-400 mb-2 ml-1 text-xs font-medium uppercase tracking-wider">
 												Last Name
 											</Text>
-											<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-3.5 flex-row items-center">
+											<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-3.5 flex-row items-center ">
 												<User
 													size={20}
 													color={
@@ -347,7 +271,7 @@ export default function MultiStepOnboarding() {
 										</View>
 
 										{/* Phone */}
-										<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-3.5 flex-row items-center">
+										<View className="bg-white/5 border border-white/10 focus:border-neon/50 rounded-2xl px-4 py-3.5 flex-row items-center mb-10">
 											<Phone
 												size={20}
 												color={
@@ -384,27 +308,17 @@ export default function MultiStepOnboarding() {
 										</View>
 									</View>
 
-									<TouchableOpacity
-										disabled={
+									<CustomButton
+										isDisabled={
 											!form.firstName ||
 											!form.lastName ||
 											!form.phoneNumber
 										}
-										activeOpacity={0.8}
-										className={`${
-											!form.firstName ||
-											!form.lastName ||
-											!form.phoneNumber
-												? "bg-neon/20"
-												: "bg-neon"
-										} h-16 rounded-2xl flex-row items-center justify-center  shadow-lg shadow-neon/20 mt-12`}
 										onPress={handleNext}
-									>
-										<Text className="text-lg font-black mr-2 text-black">
-											NEXT STEP
-										</Text>
-										<ArrowRight size={20} color="#000" />
-									</TouchableOpacity>
+										isLoading={isLoading}
+										title="Next Step"
+										key={step}
+									/>
 								</Animated.View>
 							)}
 
@@ -441,14 +355,10 @@ export default function MultiStepOnboarding() {
 													item={plan}
 													index={index}
 													isSelected={
-														form.membershipPlanId ===
-														plan.id
+														selectedPlan === plan.id
 													}
 													onPress={(id) =>
-														updateForm(
-															"membershipPlanId",
-															id,
-														)
+														setSelectedPlan(id)
 													}
 												/>
 											))
@@ -456,22 +366,13 @@ export default function MultiStepOnboarding() {
 									</View>
 
 									{!loadingPlans && (
-										<TouchableOpacity
-											disabled={!form.membershipPlanId}
-											activeOpacity={0.8}
-											className={`h-16 rounded-2xl flex-row items-center justify-center shadow-lg mt-8 ${
-												form.membershipPlanId
-													? "bg-neon shadow-neon/20"
-													: "bg-gray-800"
-											}`}
+										<CustomButton
+											isDisabled={!selectedPlan}
 											onPress={handleFinish}
-										>
-											<Text
-												className={`text-lg font-black ${form.membershipPlanId ? "text-black" : "text-gray-500"}`}
-											>
-												COMPLETE SETUP
-											</Text>
-										</TouchableOpacity>
+											isLoading={isLoading}
+											title="Pay and Complete"
+											key={step}
+										/>
 									)}
 								</Animated.View>
 							)}
@@ -482,3 +383,89 @@ export default function MultiStepOnboarding() {
 		</TouchableWithoutFeedback>
 	);
 }
+
+const PlanCard = React.memo(
+	({
+		item,
+		isSelected,
+		onPress,
+		index,
+	}: {
+		item: MembershipPlan;
+		isSelected: boolean;
+		onPress: (id: string) => void;
+		index: number;
+	}) => {
+		// Get the icon component based on the string name
+		const Icon = getIcon(item.iconName);
+
+		// MAPPING LOGIC:
+		// API 'type' -> UI Title ("Annually")
+		// API 'title' -> UI Price Display ("₱10,999/yr")
+		const displayTitle = capitalize(item.type);
+		const displayPrice = item.title;
+
+		return (
+			<Animated.View
+				entering={FadeInDown.delay(100 + index * 100).springify()}
+				className="mb-4"
+			>
+				<TouchableOpacity
+					activeOpacity={0.9}
+					onPress={() => onPress(item.id)}
+					className={`p-5 rounded-3xl border ${
+						isSelected
+							? "bg-neon/10 border-neon"
+							: "bg-white/5 border-white/10"
+					}`}
+				>
+					<View className="flex-row items-center justify-between mb-2">
+						<View
+							className={`w-10 h-10 rounded-full items-center justify-center ${
+								isSelected ? "bg-neon" : "bg-white/10"
+							}`}
+						>
+							<Icon
+								size={20}
+								color={isSelected ? "#000000" : "#889999"}
+							/>
+						</View>
+						{isSelected && (
+							<CheckCircle2 size={24} color="#00F0C5" />
+						)}
+					</View>
+
+					<Text
+						className={`text-lg font-bold mb-1 ${
+							isSelected ? "text-white" : "text-gray-300"
+						}`}
+					>
+						{displayTitle}
+					</Text>
+					<Text className="text-neon text-xl font-black mb-1">
+						{displayPrice}
+					</Text>
+					<Text className="text-gray-400 text-xs font-medium">
+						{item.desc}
+					</Text>
+				</TouchableOpacity>
+			</Animated.View>
+		);
+	},
+);
+
+const iconMap: Record<string, LucideIcon> = {
+	Crown: Crown,
+	Calendar: Calendar,
+	CreditCard: CreditCard,
+	Footprints: Footprints,
+};
+
+const getIcon = (name: string) => {
+	return iconMap[name] || Crown; // Default to Crown if icon name not found
+};
+
+const capitalize = (s: string) => {
+	if (!s) return "";
+	return s.charAt(0).toUpperCase() + s.slice(1);
+};

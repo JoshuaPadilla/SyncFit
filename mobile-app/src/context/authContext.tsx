@@ -1,10 +1,9 @@
 import { supabase } from "@/_lib/supabase";
 import { useUserStore } from "@/_stores/userStore";
-import { jsonFormatter } from "@/helpers/json_formater";
 import { User } from "@/types/user";
 import type { Session } from "@supabase/supabase-js";
 import { useRouter } from "expo-router";
-import { getItemAsync } from "expo-secure-store";
+import { deleteItemAsync, getItemAsync } from "expo-secure-store";
 import {
 	createContext,
 	PropsWithChildren,
@@ -34,7 +33,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 
-	jsonFormatter(user);
 	const refreshUser = async () => {
 		try {
 			const loggedUser = await fetchLoggedUser();
@@ -76,7 +74,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		const initAuth = async () => {
 			const hasOpened = await getItemAsync("hasOpened");
 
-			if (hasOpened) setIsFirstTime(false);
+			deleteItemAsync("hasOpened");
+			// if (hasOpened) setIsFirstTime(false);
 			setIsFirstTime(hasOpened === null);
 			try {
 				const {
@@ -112,22 +111,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		// Note: You can add logic here to check 'segments' if you want to avoid
 		// redirecting users who are already on the correct screen.
 
-		router.replace("/(auth_screens)/payment-test");
+		// router.replace("/(auth_screens)/payment-test");
 
-		// if (isFirstTime) {
-		// 	router.replace("/");
-		// }
+		if (isFirstTime) {
+			router.replace("/");
+		}
 
-		// if (!session) {
-		// 	// No session -> Login
-		// 	router.replace("/(onboarding)/login");
-		// } else if (!user) {
-		// 	// Session but no user data -> Complete Profile
-		// 	router.replace("/profile_completion");
-		// } else {
-		// 	// All good -> Home
-		// 	router.replace("/(auth_screens)/(user)/user_home");
-		// }
+		if (!session) {
+			// No session -> Login
+			router.replace("/(onboarding)/login");
+		} else if (session && !user) {
+			// Session but no user data -> Complete Profile
+			router.replace("/profile_completion");
+		} else if (session && user && !user.member) {
+			// Session but no user data -> Complete Profile
+			router.replace({
+				pathname: "/profile_completion",
+				params: { stepParam: 2 },
+			});
+		} else {
+			// All good -> Home
+			router.replace("/(auth_screens)/(user)/user_home");
+		}
 	}, [isLoading, session, user]);
 
 	return (

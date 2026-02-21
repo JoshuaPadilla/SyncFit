@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateMembershipPlanDto } from 'src/dto/create_membership_plan.dto';
-import { MembershipPlan } from 'src/entities/member_plan.entity';
+import { MembershipPlan } from 'src/entities/membership_plan.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()

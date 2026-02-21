@@ -17,7 +17,4 @@ export class CreateProfileDto {
   @IsOptional()
   @IsPhoneNumber('PH') // Validates international phone formats
   phoneNumber?: string;
-
-  @IsString()
-  membershipPlanId: string;
 }

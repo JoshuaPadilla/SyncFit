@@ -10,9 +10,13 @@ type StoreProps = {
 
 export const useUserStore = create<StoreProps>((set) => ({
 	createUser: async (data) => {
-		const res = await api.post("user", data);
+		try {
+			const res = await api.post("user", data);
 
-		return res.data;
+			return res.data;
+		} catch (error) {
+			console.log(error);
+		}
 	},
 	fetchLoggedUser: async () => {
 		try {

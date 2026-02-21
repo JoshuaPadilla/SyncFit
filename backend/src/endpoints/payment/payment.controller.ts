@@ -4,21 +4,32 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Post,
   RawBodyRequest,
   Req,
+  Request,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { CreateCheckoutDto } from 'src/dto/createCheckoutDto';
+import { CheckoutType } from 'src/enums/checkout_types.enum';
+import { JwtAuthGuard } from 'src/guards/jwt_auth.guard';
+import { SucessCheckoutMetadata } from 'src/types/success_checkout_metadata';
 import { PaymentService } from './payment.service';
 
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
-  @Post('checkout')
-  createCheckoutSession(@Body() body: { amount: number }) {
-    return this.paymentService.createCheckoutSession(body.amount);
+  @UseGuards(JwtAuthGuard)
+  @Post('plan-checkout')
+  createCheckoutSession(
+    @Request() req,
+    @Body() createcheckoutDto: CreateCheckoutDto,
+  ) {
+    return this.paymentService.createPlanCheckout(createcheckoutDto, req.user);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -65,22 +76,36 @@ export class PaymentController {
     const payment = checkoutAttributes?.payments?.[0];
     const userId = payment?.attributes?.metadata?.userId;
     const amount = (payment?.attributes?.amount || 0) / 100;
+    const planId = payment?.attributes?.metadata?.planId;
+    const paymongoReference = payment?.id;
+    const paymentMethod = checkoutAttributes?.payment_method_used;
+    const type = payment?.attributes?.metadata?.type;
 
-    if (!userId) {
+    const metadata = {
+      amount,
+      planId,
+      userId,
+      paymongoReference,
+      paymentMethod,
+      rawWebhookData: body,
+    } as SucessCheckoutMetadata;
+
+    if (!userId || !type) {
       console.log('Payment received but no userId found in metadata.');
-      return { status: 'missing_metadata' };
+      throw new NotFoundException('missing metadata');
     }
 
-    // 3. Database Logic
-    try {
-      console.log(`Success: Adding ${amount} to User ${userId}`);
-      // await this.userService.addBalance(userId, amount);
-      return { status: 'ok' };
-    } catch (error) {
-      console.error('Database update failed:', error);
-      // Returning a 500 here is actually good if the DB is down
-      // because PayMongo will retry later.
-      throw error;
+    switch (type) {
+      case CheckoutType.MEMBERSHIP_PLAN:
+        await this.paymentService.sucessPlanCheckout(metadata);
+        break;
+
+      case CheckoutType.TOP_UP:
+        await this.paymentService.successTopUpCheckout(metadata);
+        break;
+
+      default:
+        throw new NotFoundException('missing event type');
     }
   }
 }
