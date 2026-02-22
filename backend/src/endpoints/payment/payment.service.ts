@@ -32,6 +32,9 @@ export class PaymentService {
     await queryRunner.startTransaction();
 
     try {
+      let successUrl =
+        'intent://user_home/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end';
+
       const plan = await queryRunner.manager.findOne(MembershipPlan, {
         where: { id: createCheckoutDto.membershipPlanId },
       });
@@ -70,8 +73,7 @@ export class PaymentService {
                 quantity: 1,
               },
             ],
-            success_url:
-              'intent://user_home/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end',
+            success_url: successUrl,
             failed_url: 'myapp://payment-failed',
             description: 'Syncfit Membership Plan Payment',
           },
@@ -94,7 +96,6 @@ export class PaymentService {
   }
 
   async sucessPlanCheckout(metadata: SucessCheckoutMetadata) {
-    console.log('finishing payment');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
