@@ -10,7 +10,7 @@ const UserLayout = () => {
 			}}
 		>
 			<Stack.Screen
-				name="user_home"
+				name="(tabs)"
 				options={{ headerShown: false, animation: "fade_from_bottom" }}
 			/>
 		</Stack>

@@ -21,6 +21,7 @@ export const useUserStore = create<StoreProps>((set) => ({
 	fetchLoggedUser: async () => {
 		try {
 			const res = await api.get("user/logged-user");
+			// jsonFormatter(res.data);
 
 			return res.data;
 		} catch (error: any) {

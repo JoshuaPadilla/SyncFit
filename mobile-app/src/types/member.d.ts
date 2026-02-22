@@ -4,7 +4,7 @@ import { MembershipType } from "@/enums/membership_type.enum";
 export type Member = {
 	id: string;
 	user?: User;
-	rfidUid: string;
+	rfidUid?: string;
 	membershipType: MembershipType;
 	status: MembershipStatus;
 	balance?: number | null; // decimal columns come back as numbers or strings

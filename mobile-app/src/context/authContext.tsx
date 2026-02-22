@@ -3,7 +3,7 @@ import { useUserStore } from "@/_stores/userStore";
 import { User } from "@/types/user";
 import type { Session } from "@supabase/supabase-js";
 import { useRouter } from "expo-router";
-import { deleteItemAsync, getItemAsync } from "expo-secure-store";
+import { getItemAsync } from "expo-secure-store";
 import {
 	createContext,
 	PropsWithChildren,
@@ -74,8 +74,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		const initAuth = async () => {
 			const hasOpened = await getItemAsync("hasOpened");
 
-			deleteItemAsync("hasOpened");
-			// if (hasOpened) setIsFirstTime(false);
+			if (hasOpened) setIsFirstTime(false);
 			setIsFirstTime(hasOpened === null);
 			try {
 				const {
@@ -131,7 +130,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			});
 		} else {
 			// All good -> Home
-			router.replace("/(auth_screens)/(user)/user_home");
+			router.replace("/(auth_screens)/(user)/(tabs)/user_home");
 		}
 	}, [isLoading, session, user]);
 
