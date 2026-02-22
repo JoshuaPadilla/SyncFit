@@ -44,7 +44,13 @@ export class Member {
   status: MembershipStatus;
 
   // For prepaid
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    default: 0,
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   balance: number;
 
   @OneToMany(() => EntryLog, (log) => log.member)

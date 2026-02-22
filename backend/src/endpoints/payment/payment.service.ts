@@ -5,9 +5,11 @@ import { firstValueFrom } from 'rxjs';
 import { CreateCheckoutDto } from 'src/dto/createCheckoutDto';
 import { Member } from 'src/entities/member.entity';
 import { MembershipPlan } from 'src/entities/membership_plan.entity';
+import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
 import { CheckoutType } from 'src/enums/checkout_types.enum';
 import { MembershipStatus } from 'src/enums/membership_status.enum';
+import { PaymentStatus } from 'src/enums/payment_status.enum';
 import { SucessCheckoutMetadata } from 'src/types/success_checkout_metadata';
 import { DataSource } from 'typeorm';
 
@@ -69,7 +71,7 @@ export class PaymentService {
               },
             ],
             success_url:
-              'intent://payment_success_test/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end',
+              'intent://user_home/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end',
             failed_url: 'myapp://payment-failed',
             description: 'Syncfit Membership Plan Payment',
           },
@@ -92,8 +94,8 @@ export class PaymentService {
   }
 
   async sucessPlanCheckout(metadata: SucessCheckoutMetadata) {
+    console.log('finishing payment');
     const queryRunner = this.dataSource.createQueryRunner();
-
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -109,34 +111,56 @@ export class PaymentService {
 
       if (!user || !plan) throw new Error('User or Plan not found');
 
-      // 2. Handle Member Creation (If first time)
       let member = user.member;
       const now = new Date();
 
       if (!member) {
-        // Create new member record within the transaction
+        // Create new member record
         member = queryRunner.manager.create(Member, {
-          user: user,
-          status: MembershipStatus.DORMANT,
-          dateActivated: now, // First time ever
-          balance: 0,
+          user: user, // Link the user object
+          dateActivated: now,
         });
       }
 
-      // 3. Update Membership Dates (Renewal Logic)
-      member.lastRenewalDate = now;
-      member.membershipPlan = plan;
+      // Logic: If they have an active plan, add to expiry. Otherwise, start from now.
+      // Use .getTime() to safely compare dates
+      const currentExpiryDate =
+        member.expirationDate &&
+        new Date(member.expirationDate).getTime() > now.getTime()
+          ? new Date(member.expirationDate)
+          : now;
 
-      // const newPayment = queryRunner.manager.create(Payment, {
-      //   member: user.member,
-      //   paymongoReference: metadata.paymentId, // from webhook
-      //   amount: plan.price,
-      //   paymentMethod: 'gcash',
-      //   status: PaymentStatus.PAID,
-      //   rawWebhookData: rawData,
-      // });
+      const newExpiry = new Date(currentExpiryDate);
+      newExpiry.setDate(newExpiry.getDate() + plan.durationDays);
+
+      member.lastRenewalDate = now;
+      member.expirationDate = newExpiry;
+      member.membershipPlan = plan;
+      member.status = MembershipStatus.ACTIVE;
+
+      // 1. Save Member
+      const savedMember = await queryRunner.manager.save(Member, member);
+
+      // 2. Create Payment using the savedMember
+      const newPayment = queryRunner.manager.create(Payment, {
+        member: savedMember,
+        amount: metadata.amount,
+        paymentMethod: metadata.paymentMethod,
+        paymongoReference: metadata.paymongoReference,
+        status: PaymentStatus.PAID,
+        rawWebhookData: metadata.rawWebhookData,
+      });
+
+      // 3. Save Payment
+      await queryRunner.manager.save(Payment, newPayment);
+
+      await queryRunner.commitTransaction();
+
+      return { success: true, expiry: newExpiry };
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      // Rethrow or handle error so the caller knows it failed
+      throw error;
     } finally {
       await queryRunner.release();
     }
