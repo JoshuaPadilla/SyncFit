@@ -1,11 +1,11 @@
 import { MembershipStatus } from "@/enums/membership_status.enum";
-import { MembershipType } from "@/enums/membership_type.enum";
+import { MembershipPlan } from "./membership_plan";
 
 export type Member = {
 	id: string;
 	user?: User;
 	rfidUid?: string;
-	membershipType: MembershipType;
+	membershipPlan: MembershipPlan;
 	status: MembershipStatus;
 	balance?: number | null; // decimal columns come back as numbers or strings
 	expirationDate?: string | Date | null;

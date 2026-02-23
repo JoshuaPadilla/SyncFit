@@ -1,4 +1,10 @@
+import { useUserStore } from "@/_stores/userStore";
 import { FloatingBlob } from "@/components/floating_blob";
+import { useAuth } from "@/context/authContext";
+import { MembershipType } from "@/enums/membership_type.enum";
+import { dateFormatter } from "@/helpers/date_formatter";
+import { getRemainingDays } from "@/helpers/getPlanRemainingDays";
+import { UserDashboardInsights } from "@/types/user_dashboard_insights";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -10,7 +16,7 @@ import {
 	Flame,
 	Plus,
 } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
 	Keyboard,
 	KeyboardAvoidingView,
@@ -24,6 +30,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const UserHome = () => {
+	const { user } = useAuth();
+	const { getUserDashboardInsights } = useUserStore();
+	const [insights, setInsights] = useState<UserDashboardInsights | null>(
+		null,
+	);
+
+	console.log(insights);
+
 	const currentMember = {
 		id: "1",
 		membershipType: "monthly",
@@ -57,15 +71,8 @@ const UserHome = () => {
 		},
 	];
 
-	const isPrepaid = true;
-
-	const getRemainingDays = () => {
-		if (!currentMember.expirationDate) return 0;
-		const diff =
-			new Date(currentMember.expirationDate).getTime() -
-			new Date().getTime();
-		return Math.ceil(diff / (1000 * 3600 * 24));
-	};
+	const isPrepaid =
+		user?.member?.membershipPlan.type === MembershipType.PREPAID;
 
 	const formatTime = (date: Date) => {
 		return date.toLocaleTimeString([], {
@@ -81,6 +88,15 @@ const UserHome = () => {
 		return <Calendar color="#889999" size={20} />;
 	};
 
+	useEffect(() => {
+		const init = async () => {
+			const result = await getUserDashboardInsights();
+
+			if (result) setInsights(result);
+		};
+
+		init();
+	}, []);
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 			<View className="flex-1 bg-darkBgBot">
@@ -119,7 +135,7 @@ const UserHome = () => {
 										Welcome back,
 									</Text>
 									<Text className="text-text font-header-bold text-2xl">
-										Hello, Joshu
+										Hello, {user?.firstName}
 									</Text>
 								</View>
 								<TouchableOpacity className="bg-white/5 p-3 rounded-full">
@@ -140,9 +156,8 @@ const UserHome = () => {
 									</Text>
 									<View className="flex-row items-end mb-6">
 										<Text className="text-text font-header-bold text-4xl">
-											{currentMember.balance?.toFixed(
-												2,
-											) || "0.00"}
+											{user.member?.balance?.toFixed(2) ||
+												"0.00"}
 										</Text>
 										<Text className="text-neon font-header-bold text-lg ml-2 mb-1">
 											PHP
@@ -155,7 +170,7 @@ const UserHome = () => {
 												Status
 											</Text>
 											<Text className="text-text font-body-med text-xs mt-1">
-												{currentMember.status}
+												{user.member?.status}
 											</Text>
 										</View>
 										<TouchableOpacity className="bg-neon flex-row items-center px-4 py-2.5 rounded-xl">
@@ -175,11 +190,13 @@ const UserHome = () => {
 									className="p-5 rounded-3xl border border-white/10 mb-6 overflow-hidden"
 								>
 									<Text className="text-textDim font-body-semibold text-xs tracking-widest mb-2 uppercase">
-										{currentMember.membershipType} PLAN
+										{user?.member?.membershipPlan.type} PLAN
 									</Text>
 									<View className="flex-row items-end mb-6">
 										<Text className="text-text font-header-bold text-4xl">
-											{getRemainingDays()}
+											{getRemainingDays(
+												user?.member?.expirationDate,
+											)}
 										</Text>
 										<Text className="text-textDim font-header-bold text-lg ml-2 mb-1">
 											Days Left
@@ -192,7 +209,10 @@ const UserHome = () => {
 												Expires on
 											</Text>
 											<Text className="text-text font-body-med text-xs mt-1">
-												{currentMember.expirationDate?.toLocaleDateString()}
+												{dateFormatter(
+													user?.member
+														?.expirationDate,
+												)}
 											</Text>
 										</View>
 										<TouchableOpacity className="bg-white flex-row items-center px-4 py-2.5 rounded-xl">
@@ -222,7 +242,7 @@ const UserHome = () => {
 										className="mb-3"
 									/>
 									<Text className="text-text font-header-bold text-2xl mb-1">
-										4 Days
+										{insights?.streak} days
 									</Text>
 									<Text className="text-textDim font-body-reg text-xs">
 										Current Streak
@@ -236,7 +256,8 @@ const UserHome = () => {
 										className="mb-3"
 									/>
 									<Text className="text-text font-header-bold text-lg mb-1">
-										Yesterday
+										{dateFormatter(insights?.lastVisit) ||
+											"Not Visited yet"}
 									</Text>
 									<Text className="text-textDim font-body-reg text-xs">
 										Last Visit

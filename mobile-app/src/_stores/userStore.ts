@@ -1,11 +1,13 @@
 import { api } from "@/_lib/axios_client";
 import { CreateUserDto } from "@/dtos/createUser";
 import { User } from "@/types/user";
+import { UserDashboardInsights } from "@/types/user_dashboard_insights";
 import { create } from "zustand";
 
 type StoreProps = {
 	createUser: (data: CreateUserDto) => Promise<User>;
 	fetchLoggedUser: () => Promise<User | null>;
+	getUserDashboardInsights: () => Promise<UserDashboardInsights>;
 };
 
 export const useUserStore = create<StoreProps>((set) => ({
@@ -27,5 +29,10 @@ export const useUserStore = create<StoreProps>((set) => ({
 		} catch (error: any) {
 			console.log(error);
 		}
+	},
+	getUserDashboardInsights: async () => {
+		const res = await api.get("user/user-dashboard-insights");
+
+		return res.data;
 	},
 }));
