@@ -1,4 +1,4 @@
-export type DashboardInsights = {
+export type UserDashboardInsights = {
 	streak: number;
 	lastVisit: Date;
 };

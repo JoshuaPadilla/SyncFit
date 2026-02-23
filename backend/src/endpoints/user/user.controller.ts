@@ -26,4 +26,9 @@ export class UserController {
     // console.log(req.user.id);
     return this.userService.fetchLoggedUser(req.user.id);
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('user-dashboard-insights')
+  getUserDashboardInsights(@Request() req) {
+    return this.userService.getUserDashboardInsights(req.user.id);
+  }
 }
