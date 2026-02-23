@@ -4,7 +4,7 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+		<div className="min-h-screen bg-linear-to-b from-slate-900 via-slate-800 to-slate-900">
 			Hello world
 		</div>
 	);

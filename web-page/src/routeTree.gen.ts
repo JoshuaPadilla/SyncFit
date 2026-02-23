@@ -10,33 +10,154 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as PlansIndexRouteImport } from './routes/plans/index'
+import { Route as PaymentsIndexRouteImport } from './routes/payments/index'
+import { Route as MembersIndexRouteImport } from './routes/members/index'
+import { Route as InsightsIndexRouteImport } from './routes/insights/index'
+import { Route as EntryLogsIndexRouteImport } from './routes/entry-logs/index'
+import { Route as PlansPlan_idRouteImport } from './routes/plans/$plan_id'
+import { Route as MembersMember_idRouteImport } from './routes/members/$member_id'
+import { Route as EntryLogsLog_idRouteImport } from './routes/entry-logs/$log_id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansIndexRoute = PlansIndexRouteImport.update({
+  id: '/plans/',
+  path: '/plans/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentsIndexRoute = PaymentsIndexRouteImport.update({
+  id: '/payments/',
+  path: '/payments/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersIndexRoute = MembersIndexRouteImport.update({
+  id: '/members/',
+  path: '/members/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsIndexRoute = InsightsIndexRouteImport.update({
+  id: '/insights/',
+  path: '/insights/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntryLogsIndexRoute = EntryLogsIndexRouteImport.update({
+  id: '/entry-logs/',
+  path: '/entry-logs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansPlan_idRoute = PlansPlan_idRouteImport.update({
+  id: '/plans/$plan_id',
+  path: '/plans/$plan_id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersMember_idRoute = MembersMember_idRouteImport.update({
+  id: '/members/$member_id',
+  path: '/members/$member_id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntryLogsLog_idRoute = EntryLogsLog_idRouteImport.update({
+  id: '/entry-logs/$log_id',
+  path: '/entry-logs/$log_id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/entry-logs/$log_id': typeof EntryLogsLog_idRoute
+  '/members/$member_id': typeof MembersMember_idRoute
+  '/plans/$plan_id': typeof PlansPlan_idRoute
+  '/entry-logs/': typeof EntryLogsIndexRoute
+  '/insights/': typeof InsightsIndexRoute
+  '/members/': typeof MembersIndexRoute
+  '/payments/': typeof PaymentsIndexRoute
+  '/plans/': typeof PlansIndexRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/entry-logs/$log_id': typeof EntryLogsLog_idRoute
+  '/members/$member_id': typeof MembersMember_idRoute
+  '/plans/$plan_id': typeof PlansPlan_idRoute
+  '/entry-logs': typeof EntryLogsIndexRoute
+  '/insights': typeof InsightsIndexRoute
+  '/members': typeof MembersIndexRoute
+  '/payments': typeof PaymentsIndexRoute
+  '/plans': typeof PlansIndexRoute
+  '/settings': typeof SettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/entry-logs/$log_id': typeof EntryLogsLog_idRoute
+  '/members/$member_id': typeof MembersMember_idRoute
+  '/plans/$plan_id': typeof PlansPlan_idRoute
+  '/entry-logs/': typeof EntryLogsIndexRoute
+  '/insights/': typeof InsightsIndexRoute
+  '/members/': typeof MembersIndexRoute
+  '/payments/': typeof PaymentsIndexRoute
+  '/plans/': typeof PlansIndexRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/entry-logs/$log_id'
+    | '/members/$member_id'
+    | '/plans/$plan_id'
+    | '/entry-logs/'
+    | '/insights/'
+    | '/members/'
+    | '/payments/'
+    | '/plans/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/entry-logs/$log_id'
+    | '/members/$member_id'
+    | '/plans/$plan_id'
+    | '/entry-logs'
+    | '/insights'
+    | '/members'
+    | '/payments'
+    | '/plans'
+    | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/entry-logs/$log_id'
+    | '/members/$member_id'
+    | '/plans/$plan_id'
+    | '/entry-logs/'
+    | '/insights/'
+    | '/members/'
+    | '/payments/'
+    | '/plans/'
+    | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EntryLogsLog_idRoute: typeof EntryLogsLog_idRoute
+  MembersMember_idRoute: typeof MembersMember_idRoute
+  PlansPlan_idRoute: typeof PlansPlan_idRoute
+  EntryLogsIndexRoute: typeof EntryLogsIndexRoute
+  InsightsIndexRoute: typeof InsightsIndexRoute
+  MembersIndexRoute: typeof MembersIndexRoute
+  PaymentsIndexRoute: typeof PaymentsIndexRoute
+  PlansIndexRoute: typeof PlansIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +169,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans/': {
+      id: '/plans/'
+      path: '/plans'
+      fullPath: '/plans/'
+      preLoaderRoute: typeof PlansIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payments/': {
+      id: '/payments/'
+      path: '/payments'
+      fullPath: '/payments/'
+      preLoaderRoute: typeof PaymentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members/': {
+      id: '/members/'
+      path: '/members'
+      fullPath: '/members/'
+      preLoaderRoute: typeof MembersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights/': {
+      id: '/insights/'
+      path: '/insights'
+      fullPath: '/insights/'
+      preLoaderRoute: typeof InsightsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entry-logs/': {
+      id: '/entry-logs/'
+      path: '/entry-logs'
+      fullPath: '/entry-logs/'
+      preLoaderRoute: typeof EntryLogsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans/$plan_id': {
+      id: '/plans/$plan_id'
+      path: '/plans/$plan_id'
+      fullPath: '/plans/$plan_id'
+      preLoaderRoute: typeof PlansPlan_idRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members/$member_id': {
+      id: '/members/$member_id'
+      path: '/members/$member_id'
+      fullPath: '/members/$member_id'
+      preLoaderRoute: typeof MembersMember_idRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entry-logs/$log_id': {
+      id: '/entry-logs/$log_id'
+      path: '/entry-logs/$log_id'
+      fullPath: '/entry-logs/$log_id'
+      preLoaderRoute: typeof EntryLogsLog_idRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EntryLogsLog_idRoute: EntryLogsLog_idRoute,
+  MembersMember_idRoute: MembersMember_idRoute,
+  PlansPlan_idRoute: PlansPlan_idRoute,
+  EntryLogsIndexRoute: EntryLogsIndexRoute,
+  InsightsIndexRoute: InsightsIndexRoute,
+  MembersIndexRoute: MembersIndexRoute,
+  PaymentsIndexRoute: PaymentsIndexRoute,
+  PlansIndexRoute: PlansIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
