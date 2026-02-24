@@ -9,159 +9,211 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteRouteImport } from './routes/authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as PlansIndexRouteImport } from './routes/plans/index'
-import { Route as PaymentsIndexRouteImport } from './routes/payments/index'
-import { Route as MembersIndexRouteImport } from './routes/members/index'
-import { Route as InsightsIndexRouteImport } from './routes/insights/index'
-import { Route as EntryLogsIndexRouteImport } from './routes/entry-logs/index'
-import { Route as PlansPlan_idRouteImport } from './routes/plans/$plan_id'
-import { Route as MembersMember_idRouteImport } from './routes/members/$member_id'
-import { Route as EntryLogsLog_idRouteImport } from './routes/entry-logs/$log_id'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/authenticated/settings/index'
+import { Route as AuthenticatedPlansIndexRouteImport } from './routes/authenticated/plans/index'
+import { Route as AuthenticatedPaymentsIndexRouteImport } from './routes/authenticated/payments/index'
+import { Route as AuthenticatedOverviewIndexRouteImport } from './routes/authenticated/overview/index'
+import { Route as AuthenticatedMembersIndexRouteImport } from './routes/authenticated/members/index'
+import { Route as AuthenticatedInsightsIndexRouteImport } from './routes/authenticated/insights/index'
+import { Route as AuthenticatedEntryLogsIndexRouteImport } from './routes/authenticated/entry-logs/index'
+import { Route as AuthenticatedPlansPlan_idRouteImport } from './routes/authenticated/plans/$plan_id'
+import { Route as AuthenticatedMembersMember_idRouteImport } from './routes/authenticated/members/$member_id'
+import { Route as AuthenticatedEntryLogsLog_idRouteImport } from './routes/authenticated/entry-logs/$log_id'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/authenticated',
+  path: '/authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlansIndexRoute = PlansIndexRouteImport.update({
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlansIndexRoute = AuthenticatedPlansIndexRouteImport.update({
   id: '/plans/',
   path: '/plans/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const PaymentsIndexRoute = PaymentsIndexRouteImport.update({
-  id: '/payments/',
-  path: '/payments/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MembersIndexRoute = MembersIndexRouteImport.update({
-  id: '/members/',
-  path: '/members/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InsightsIndexRoute = InsightsIndexRouteImport.update({
-  id: '/insights/',
-  path: '/insights/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EntryLogsIndexRoute = EntryLogsIndexRouteImport.update({
-  id: '/entry-logs/',
-  path: '/entry-logs/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlansPlan_idRoute = PlansPlan_idRouteImport.update({
-  id: '/plans/$plan_id',
-  path: '/plans/$plan_id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MembersMember_idRoute = MembersMember_idRouteImport.update({
-  id: '/members/$member_id',
-  path: '/members/$member_id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EntryLogsLog_idRoute = EntryLogsLog_idRouteImport.update({
-  id: '/entry-logs/$log_id',
-  path: '/entry-logs/$log_id',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AuthenticatedPaymentsIndexRoute =
+  AuthenticatedPaymentsIndexRouteImport.update({
+    id: '/payments/',
+    path: '/payments/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOverviewIndexRoute =
+  AuthenticatedOverviewIndexRouteImport.update({
+    id: '/overview/',
+    path: '/overview/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMembersIndexRoute =
+  AuthenticatedMembersIndexRouteImport.update({
+    id: '/members/',
+    path: '/members/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInsightsIndexRoute =
+  AuthenticatedInsightsIndexRouteImport.update({
+    id: '/insights/',
+    path: '/insights/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntryLogsIndexRoute =
+  AuthenticatedEntryLogsIndexRouteImport.update({
+    id: '/entry-logs/',
+    path: '/entry-logs/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlansPlan_idRoute =
+  AuthenticatedPlansPlan_idRouteImport.update({
+    id: '/plans/$plan_id',
+    path: '/plans/$plan_id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMembersMember_idRoute =
+  AuthenticatedMembersMember_idRouteImport.update({
+    id: '/members/$member_id',
+    path: '/members/$member_id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntryLogsLog_idRoute =
+  AuthenticatedEntryLogsLog_idRouteImport.update({
+    id: '/entry-logs/$log_id',
+    path: '/entry-logs/$log_id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/entry-logs/$log_id': typeof EntryLogsLog_idRoute
-  '/members/$member_id': typeof MembersMember_idRoute
-  '/plans/$plan_id': typeof PlansPlan_idRoute
-  '/entry-logs/': typeof EntryLogsIndexRoute
-  '/insights/': typeof InsightsIndexRoute
-  '/members/': typeof MembersIndexRoute
-  '/payments/': typeof PaymentsIndexRoute
-  '/plans/': typeof PlansIndexRoute
-  '/settings/': typeof SettingsIndexRoute
+  '/authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/authenticated/entry-logs/$log_id': typeof AuthenticatedEntryLogsLog_idRoute
+  '/authenticated/members/$member_id': typeof AuthenticatedMembersMember_idRoute
+  '/authenticated/plans/$plan_id': typeof AuthenticatedPlansPlan_idRoute
+  '/authenticated/entry-logs/': typeof AuthenticatedEntryLogsIndexRoute
+  '/authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
+  '/authenticated/members/': typeof AuthenticatedMembersIndexRoute
+  '/authenticated/overview/': typeof AuthenticatedOverviewIndexRoute
+  '/authenticated/payments/': typeof AuthenticatedPaymentsIndexRoute
+  '/authenticated/plans/': typeof AuthenticatedPlansIndexRoute
+  '/authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/entry-logs/$log_id': typeof EntryLogsLog_idRoute
-  '/members/$member_id': typeof MembersMember_idRoute
-  '/plans/$plan_id': typeof PlansPlan_idRoute
-  '/entry-logs': typeof EntryLogsIndexRoute
-  '/insights': typeof InsightsIndexRoute
-  '/members': typeof MembersIndexRoute
-  '/payments': typeof PaymentsIndexRoute
-  '/plans': typeof PlansIndexRoute
-  '/settings': typeof SettingsIndexRoute
+  '/authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/authenticated/entry-logs/$log_id': typeof AuthenticatedEntryLogsLog_idRoute
+  '/authenticated/members/$member_id': typeof AuthenticatedMembersMember_idRoute
+  '/authenticated/plans/$plan_id': typeof AuthenticatedPlansPlan_idRoute
+  '/authenticated/entry-logs': typeof AuthenticatedEntryLogsIndexRoute
+  '/authenticated/insights': typeof AuthenticatedInsightsIndexRoute
+  '/authenticated/members': typeof AuthenticatedMembersIndexRoute
+  '/authenticated/overview': typeof AuthenticatedOverviewIndexRoute
+  '/authenticated/payments': typeof AuthenticatedPaymentsIndexRoute
+  '/authenticated/plans': typeof AuthenticatedPlansIndexRoute
+  '/authenticated/settings': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/entry-logs/$log_id': typeof EntryLogsLog_idRoute
-  '/members/$member_id': typeof MembersMember_idRoute
-  '/plans/$plan_id': typeof PlansPlan_idRoute
-  '/entry-logs/': typeof EntryLogsIndexRoute
-  '/insights/': typeof InsightsIndexRoute
-  '/members/': typeof MembersIndexRoute
-  '/payments/': typeof PaymentsIndexRoute
-  '/plans/': typeof PlansIndexRoute
-  '/settings/': typeof SettingsIndexRoute
+  '/authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/authenticated/entry-logs/$log_id': typeof AuthenticatedEntryLogsLog_idRoute
+  '/authenticated/members/$member_id': typeof AuthenticatedMembersMember_idRoute
+  '/authenticated/plans/$plan_id': typeof AuthenticatedPlansPlan_idRoute
+  '/authenticated/entry-logs/': typeof AuthenticatedEntryLogsIndexRoute
+  '/authenticated/insights/': typeof AuthenticatedInsightsIndexRoute
+  '/authenticated/members/': typeof AuthenticatedMembersIndexRoute
+  '/authenticated/overview/': typeof AuthenticatedOverviewIndexRoute
+  '/authenticated/payments/': typeof AuthenticatedPaymentsIndexRoute
+  '/authenticated/plans/': typeof AuthenticatedPlansIndexRoute
+  '/authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/entry-logs/$log_id'
-    | '/members/$member_id'
-    | '/plans/$plan_id'
-    | '/entry-logs/'
-    | '/insights/'
-    | '/members/'
-    | '/payments/'
-    | '/plans/'
-    | '/settings/'
+    | '/authenticated'
+    | '/login'
+    | '/authenticated/entry-logs/$log_id'
+    | '/authenticated/members/$member_id'
+    | '/authenticated/plans/$plan_id'
+    | '/authenticated/entry-logs/'
+    | '/authenticated/insights/'
+    | '/authenticated/members/'
+    | '/authenticated/overview/'
+    | '/authenticated/payments/'
+    | '/authenticated/plans/'
+    | '/authenticated/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/entry-logs/$log_id'
-    | '/members/$member_id'
-    | '/plans/$plan_id'
-    | '/entry-logs'
-    | '/insights'
-    | '/members'
-    | '/payments'
-    | '/plans'
-    | '/settings'
+    | '/authenticated'
+    | '/login'
+    | '/authenticated/entry-logs/$log_id'
+    | '/authenticated/members/$member_id'
+    | '/authenticated/plans/$plan_id'
+    | '/authenticated/entry-logs'
+    | '/authenticated/insights'
+    | '/authenticated/members'
+    | '/authenticated/overview'
+    | '/authenticated/payments'
+    | '/authenticated/plans'
+    | '/authenticated/settings'
   id:
     | '__root__'
     | '/'
-    | '/entry-logs/$log_id'
-    | '/members/$member_id'
-    | '/plans/$plan_id'
-    | '/entry-logs/'
-    | '/insights/'
-    | '/members/'
-    | '/payments/'
-    | '/plans/'
-    | '/settings/'
+    | '/authenticated'
+    | '/login'
+    | '/authenticated/entry-logs/$log_id'
+    | '/authenticated/members/$member_id'
+    | '/authenticated/plans/$plan_id'
+    | '/authenticated/entry-logs/'
+    | '/authenticated/insights/'
+    | '/authenticated/members/'
+    | '/authenticated/overview/'
+    | '/authenticated/payments/'
+    | '/authenticated/plans/'
+    | '/authenticated/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  EntryLogsLog_idRoute: typeof EntryLogsLog_idRoute
-  MembersMember_idRoute: typeof MembersMember_idRoute
-  PlansPlan_idRoute: typeof PlansPlan_idRoute
-  EntryLogsIndexRoute: typeof EntryLogsIndexRoute
-  InsightsIndexRoute: typeof InsightsIndexRoute
-  MembersIndexRoute: typeof MembersIndexRoute
-  PaymentsIndexRoute: typeof PaymentsIndexRoute
-  PlansIndexRoute: typeof PlansIndexRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/authenticated': {
+      id: '/authenticated'
+      path: '/authenticated'
+      fullPath: '/authenticated'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -169,83 +221,112 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/': {
-      id: '/settings/'
+    '/authenticated/settings/': {
+      id: '/authenticated/settings/'
       path: '/settings'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/plans/': {
-      id: '/plans/'
+    '/authenticated/plans/': {
+      id: '/authenticated/plans/'
       path: '/plans'
-      fullPath: '/plans/'
-      preLoaderRoute: typeof PlansIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/plans/'
+      preLoaderRoute: typeof AuthenticatedPlansIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/payments/': {
-      id: '/payments/'
+    '/authenticated/payments/': {
+      id: '/authenticated/payments/'
       path: '/payments'
-      fullPath: '/payments/'
-      preLoaderRoute: typeof PaymentsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/payments/'
+      preLoaderRoute: typeof AuthenticatedPaymentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/members/': {
-      id: '/members/'
+    '/authenticated/overview/': {
+      id: '/authenticated/overview/'
+      path: '/overview'
+      fullPath: '/authenticated/overview/'
+      preLoaderRoute: typeof AuthenticatedOverviewIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/authenticated/members/': {
+      id: '/authenticated/members/'
       path: '/members'
-      fullPath: '/members/'
-      preLoaderRoute: typeof MembersIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/members/'
+      preLoaderRoute: typeof AuthenticatedMembersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/insights/': {
-      id: '/insights/'
+    '/authenticated/insights/': {
+      id: '/authenticated/insights/'
       path: '/insights'
-      fullPath: '/insights/'
-      preLoaderRoute: typeof InsightsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/insights/'
+      preLoaderRoute: typeof AuthenticatedInsightsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/entry-logs/': {
-      id: '/entry-logs/'
+    '/authenticated/entry-logs/': {
+      id: '/authenticated/entry-logs/'
       path: '/entry-logs'
-      fullPath: '/entry-logs/'
-      preLoaderRoute: typeof EntryLogsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/entry-logs/'
+      preLoaderRoute: typeof AuthenticatedEntryLogsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/plans/$plan_id': {
-      id: '/plans/$plan_id'
+    '/authenticated/plans/$plan_id': {
+      id: '/authenticated/plans/$plan_id'
       path: '/plans/$plan_id'
-      fullPath: '/plans/$plan_id'
-      preLoaderRoute: typeof PlansPlan_idRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/plans/$plan_id'
+      preLoaderRoute: typeof AuthenticatedPlansPlan_idRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/members/$member_id': {
-      id: '/members/$member_id'
+    '/authenticated/members/$member_id': {
+      id: '/authenticated/members/$member_id'
       path: '/members/$member_id'
-      fullPath: '/members/$member_id'
-      preLoaderRoute: typeof MembersMember_idRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/members/$member_id'
+      preLoaderRoute: typeof AuthenticatedMembersMember_idRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/entry-logs/$log_id': {
-      id: '/entry-logs/$log_id'
+    '/authenticated/entry-logs/$log_id': {
+      id: '/authenticated/entry-logs/$log_id'
       path: '/entry-logs/$log_id'
-      fullPath: '/entry-logs/$log_id'
-      preLoaderRoute: typeof EntryLogsLog_idRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/authenticated/entry-logs/$log_id'
+      preLoaderRoute: typeof AuthenticatedEntryLogsLog_idRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedEntryLogsLog_idRoute: typeof AuthenticatedEntryLogsLog_idRoute
+  AuthenticatedMembersMember_idRoute: typeof AuthenticatedMembersMember_idRoute
+  AuthenticatedPlansPlan_idRoute: typeof AuthenticatedPlansPlan_idRoute
+  AuthenticatedEntryLogsIndexRoute: typeof AuthenticatedEntryLogsIndexRoute
+  AuthenticatedInsightsIndexRoute: typeof AuthenticatedInsightsIndexRoute
+  AuthenticatedMembersIndexRoute: typeof AuthenticatedMembersIndexRoute
+  AuthenticatedOverviewIndexRoute: typeof AuthenticatedOverviewIndexRoute
+  AuthenticatedPaymentsIndexRoute: typeof AuthenticatedPaymentsIndexRoute
+  AuthenticatedPlansIndexRoute: typeof AuthenticatedPlansIndexRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedEntryLogsLog_idRoute: AuthenticatedEntryLogsLog_idRoute,
+  AuthenticatedMembersMember_idRoute: AuthenticatedMembersMember_idRoute,
+  AuthenticatedPlansPlan_idRoute: AuthenticatedPlansPlan_idRoute,
+  AuthenticatedEntryLogsIndexRoute: AuthenticatedEntryLogsIndexRoute,
+  AuthenticatedInsightsIndexRoute: AuthenticatedInsightsIndexRoute,
+  AuthenticatedMembersIndexRoute: AuthenticatedMembersIndexRoute,
+  AuthenticatedOverviewIndexRoute: AuthenticatedOverviewIndexRoute,
+  AuthenticatedPaymentsIndexRoute: AuthenticatedPaymentsIndexRoute,
+  AuthenticatedPlansIndexRoute: AuthenticatedPlansIndexRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  EntryLogsLog_idRoute: EntryLogsLog_idRoute,
-  MembersMember_idRoute: MembersMember_idRoute,
-  PlansPlan_idRoute: PlansPlan_idRoute,
-  EntryLogsIndexRoute: EntryLogsIndexRoute,
-  InsightsIndexRoute: InsightsIndexRoute,
-  MembersIndexRoute: MembersIndexRoute,
-  PaymentsIndexRoute: PaymentsIndexRoute,
-  PlansIndexRoute: PlansIndexRoute,
-  SettingsIndexRoute: SettingsIndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

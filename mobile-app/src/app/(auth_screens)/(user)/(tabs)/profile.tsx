@@ -1,4 +1,5 @@
 import { FloatingBlob } from "@/components/floating_blob";
+import { useAuth } from "@/context/authContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
@@ -12,8 +13,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const UserProfile = () => {
+	const { signOut } = useAuth();
 	return (
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+		<TouchableWithoutFeedback
+			onPress={Keyboard.dismiss}
+			onPressIn={async () => await signOut()}
+		>
 			<View className="flex-1 bg-[#020807]">
 				<StatusBar style="light" />
 

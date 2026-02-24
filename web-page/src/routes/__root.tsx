@@ -1,11 +1,8 @@
-import { TanStackDevtools } from "@tanstack/react-devtools";
+import "@/styles.css";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-
-import { AppSidebar } from "@/components/custom_components/app_sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import type { AuthContextType } from "@/context/auth_context";
-import "../styles.css";
+// Change this import
+import { type AuthContextType } from "@/context/auth_context";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 interface MyRouterContext {
 	auth: AuthContextType;
@@ -17,22 +14,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootComponent() {
 	return (
-		<SidebarProvider>
-			<AppSidebar />
-			<SidebarInset>
-				<Outlet />
-			</SidebarInset>
-			<TanStackDevtools
-				config={{
-					position: "bottom-right",
-				}}
-				plugins={[
-					{
-						name: "TanStack Router",
-						render: <TanStackRouterDevtoolsPanel />,
-					},
-				]}
-			/>
-		</SidebarProvider>
+		<>
+			<Outlet />
+			{/* Standard Router Devtools */}
+			<TanStackRouterDevtools position="bottom-right" />
+		</>
 	);
 }

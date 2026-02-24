@@ -5,11 +5,22 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
+  app.setGlobalPrefix('syncfit/api');
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:4173',
+      'http://198.96.88.142:5173',
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
 
   app.connectMicroservice({
     transport: Transport.MQTT,
     options: {
       subscribeOptions: { qos: 0 }, // Match the QoS in your screenshot
+      clientId: `nestjs_app_${Math.random().toString(16).substring(2, 10)}`, // Makes it unique
       url: process.env.MQTT_BROKER_IP,
       username: process.env.MQTT_USERNAME,
       password: process.env.MQTT_PASSWORD,

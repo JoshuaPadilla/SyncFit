@@ -9,6 +9,6 @@ export class RfidController {
   @MessagePattern('gym/rfid/scan')
   handleRfidTap(@Payload() data: any) {
     console.log(data);
-    return this.rfidService.handleRfidTap(data);
+    // return this.rfidService.handleRfidTap(data);
   }
 }

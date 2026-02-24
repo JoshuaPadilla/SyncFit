@@ -3,10 +3,12 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { CreateProfileDto } from 'src/dto/create_user.dto';
+import { UserQueryDto } from 'src/dto/queries_dto/user_query_.dto';
 import { JwtAuthGuard } from 'src/guards/jwt_auth.guard';
 import { UserService } from './user.service';
 
@@ -18,6 +20,12 @@ export class UserController {
   @Post()
   createUser(@Request() req, @Body() createProfileDto: CreateProfileDto) {
     return this.userService.createProfile(createProfileDto, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  fetchAllUsers(@Request() req, @Query() query: UserQueryDto) {
+    return this.userService.fetchAllUsers(req.user.id, query);
   }
 
   @UseGuards(JwtAuthGuard)

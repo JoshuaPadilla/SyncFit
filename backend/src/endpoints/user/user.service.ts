@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProfileDto } from 'src/dto/create_user.dto';
+import { UserQueryDto } from 'src/dto/queries_dto/user_query_.dto';
 import { EntryLog } from 'src/entities/entry_log.entity';
 import { User } from 'src/entities/user.entity';
 import { EntryStatus } from 'src/enums/entry_status.enum';
@@ -85,6 +86,70 @@ export class UserService {
       streak,
       lastVisit: logs[0].entryTime,
       totalVisits: logs.length,
+    };
+  }
+
+  async fetchAllUsers(id: string, query: UserQueryDto) {
+    console.log(1);
+    const {
+      page = 1,
+      limit = 5,
+      search,
+      status,
+      membershipType,
+      isExpired,
+      minBalance,
+      maxBalance,
+    } = query;
+
+    const qb = this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.member', 'member')
+      .leftJoinAndSelect('member.membershipPlan', 'membershipPlan')
+      .where('user.id != :id', { id })
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (search) {
+      qb.andWhere(
+        '(LOWER(user.firstName) LIKE :search OR LOWER(user.lastName) LIKE :search OR LOWER(user.email) LIKE :search)',
+        { search: `%${search.toLowerCase()}%` },
+      );
+    }
+
+    if (status) {
+      qb.andWhere('member.status = :status', { status });
+    }
+
+    if (membershipType) {
+      qb.andWhere('membershipPlan.type = :membershipType', { membershipType });
+    }
+
+    if (isExpired !== undefined) {
+      const now = new Date();
+      if (isExpired) {
+        qb.andWhere('member.expirationDate < :now', { now });
+      } else {
+        qb.andWhere('member.expirationDate >= :now', { now });
+      }
+    }
+
+    if (minBalance !== undefined) {
+      qb.andWhere('member.balance >= :minBalance', { minBalance });
+    }
+
+    if (maxBalance !== undefined) {
+      qb.andWhere('member.balance <= :maxBalance', { maxBalance });
+    }
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     };
   }
 }
