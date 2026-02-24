@@ -106,6 +106,7 @@ export class UserService {
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.member', 'member')
       .leftJoinAndSelect('member.membershipPlan', 'membershipPlan')
+      .leftJoinAndSelect('member.entryLogs', 'entryLogs')
       .where('user.id != :id', { id })
       .skip((page - 1) * limit)
       .take(limit);
@@ -151,5 +152,12 @@ export class UserService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async fetchUserById(id: string) {
+    return await this.userRepo.findOne({
+      where: { id },
+      relations: ['member', 'member.membershipPlan', 'member.entryLogs'],
+    });
   }
 }

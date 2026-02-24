@@ -13,6 +13,7 @@ export type PaginatedUsers = {
 type StoreProps = {
 	fetchLoggedUser: () => Promise<User | null>;
 	fetchUsers: (query?: Partial<UserQuery>) => Promise<PaginatedUsers>;
+	fetchUserById: (id: string) => Promise<User | null>;
 };
 
 export const useUserStore = create<StoreProps>(() => ({
@@ -41,11 +42,21 @@ export const useUserStore = create<StoreProps>(() => ({
 			if (query.maxBalance !== undefined)
 				params.maxBalance = query.maxBalance;
 
+			console.log(params);
 			const res = await api.get("user", { params });
 			return res.data;
 		} catch (error: any) {
 			console.log(error);
 			return { data: [], total: 0, page: 1, limit: 5 };
+		}
+	},
+	fetchUserById: async (id: string) => {
+		try {
+			const res = await api.get(`user/${id}`);
+			return res.data;
+		} catch (error: any) {
+			console.log(error);
+			return null;
 		}
 	},
 }));

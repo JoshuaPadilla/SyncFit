@@ -1,3 +1,5 @@
+import { MembersTable } from "@/components/custom_components/members_table";
+import { useMqtt } from "@/context/mqtt_context";
 import { MembershipStatus } from "@/enums/membership_status.enum";
 // Assuming you have this exported in a file, adjust the path as needed
 import { MembershipType } from "@/enums/membership_type.enum";
@@ -5,7 +7,7 @@ import { useUserStore } from "@/stores/userStore";
 import type { UserQuery } from "@/types/query_types/member_query";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Filter, IdCard, Plus, Search } from "lucide-react";
+import { Filter, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -24,6 +26,7 @@ const STATUS_TABS: { label: string; value: MembershipStatus | "all" }[] = [
 
 export default function Members() {
 	const { fetchUsers } = useUserStore();
+	const client = useMqtt();
 
 	const [searchInput, setSearchInput] = useState("");
 	const [query, setQuery] = useState<Partial<UserQuery>>({
@@ -80,6 +83,7 @@ export default function Members() {
 		data: result = { data: [], total: 0, page: 1, limit: LIMIT },
 		isPending,
 		error,
+		isFetching,
 	} = useQuery({
 		queryKey: ["members", query],
 		queryFn: () => fetchUsers(query),
@@ -92,22 +96,6 @@ export default function Members() {
 	const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 	const rangeStart = total === 0 ? 0 : (currentPage - 1) * LIMIT + 1;
 	const rangeEnd = Math.min(currentPage * LIMIT, total);
-
-	const formatCurrency = (amount: any) => {
-		return new Intl.NumberFormat("en-US", {
-			style: "currency",
-			currency: "USD",
-		}).format(amount);
-	};
-
-	const formatDate = (dateString: any) => {
-		if (!dateString) return "—";
-		return new Date(dateString).toLocaleDateString("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-		});
-	};
 
 	return (
 		<div className="min-h-screen bg-background text-foreground p-8 font-body-reg dark">
@@ -185,102 +173,17 @@ export default function Members() {
 
 			<div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col">
 				<div className="overflow-x-auto">
-					<table className="w-full text-left border-collapse">
-						{/* Table head and body remain exactly the same */}
-						<thead>
-							<tr className="border-b border-border text-xs uppercase text-muted-foreground font-body-semibold tracking-wider">
-								<th className="px-6 py-4">Member Name</th>
-								<th className="px-6 py-4">Email</th>
-								<th className="px-6 py-4">RFID UID</th>
-								<th className="px-6 py-4">Membership Plan</th>
-								<th className="px-6 py-4">Balance</th>
-								<th className="px-6 py-4">Expiration Date</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-border text-sm">
-							{isPending ? (
-								<tr>
-									<td
-										colSpan={6}
-										className="px-6 py-10 text-center text-muted-foreground"
-									>
-										Loading...
-									</td>
-								</tr>
-							) : error ? (
-								<tr>
-									<td
-										colSpan={6}
-										className="px-6 py-10 text-center text-destructive"
-									>
-										Failed to load members.
-									</td>
-								</tr>
-							) : members.length === 0 ? (
-								<tr>
-									<td
-										colSpan={6}
-										className="px-6 py-10 text-center text-muted-foreground"
-									>
-										No members found.
-									</td>
-								</tr>
-							) : (
-								members.map((user) => (
-									<tr
-										key={user.id}
-										className="hover:bg-secondary/20 transition-colors group"
-									>
-										<td className="px-6 py-4">
-											<div className="flex items-center gap-3">
-												<div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-body-bold bg-primary/60">
-													{user.firstName[0]}
-													{user.lastName[0]}
-												</div>
-												<span className="font-body-med text-foreground">
-													{user.firstName}{" "}
-													{user.lastName}
-												</span>
-											</div>
-										</td>
-										<td className="px-6 py-4 text-muted-foreground">
-											{user.email}
-										</td>
-										<td className="px-6 py-4">
-											<div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary border border-border/50 text-xs text-muted-foreground font-mono">
-												<IdCard className="w-3 h-3" />
-												{user.member?.rfidUid ||
-													"NOT SET YET"}
-											</div>
-										</td>
-										<td className="px-6 py-4 text-muted-foreground">
-											{user.member?.membershipPlan?.type.toUpperCase() ??
-												"—"}
-										</td>
-										<td className="px-6 py-4 font-body-med">
-											<span
-												className={
-													(user.member?.balance ??
-														0) < 0
-														? "text-destructive"
-														: "text-foreground"
-												}
-											>
-												{formatCurrency(
-													user.member?.balance ?? 0,
-												)}
-											</span>
-										</td>
-										<td className="px-6 py-4 text-muted-foreground">
-											{formatDate(
-												user.member?.expirationDate,
-											)}
-										</td>
-									</tr>
-								))
-							)}
-						</tbody>
-					</table>
+					<div
+						className={
+							isFetching ? "opacity-50 pointer-events-none" : ""
+						}
+					>
+						<MembersTable
+							members={members}
+							isPending={isPending}
+							error={error}
+						/>
+					</div>
 				</div>
 
 				<div className="flex items-center justify-between px-6 py-4 border-t border-border">

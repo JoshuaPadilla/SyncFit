@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/custom_components/app_sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { MqttProvider } from "@/context/mqtt_context";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/authenticated")({
@@ -19,7 +20,9 @@ function AuthenticatedRoute() {
 		<SidebarProvider>
 			<AppSidebar />
 			<SidebarInset>
-				<Outlet />
+				<MqttProvider>
+					<Outlet />
+				</MqttProvider>
 			</SidebarInset>
 		</SidebarProvider>
 	);

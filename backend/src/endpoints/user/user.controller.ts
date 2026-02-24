@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Request,
@@ -33,6 +34,12 @@ export class UserController {
   fetchLoggedUser(@Request() req) {
     // console.log(req.user.id);
     return this.userService.fetchLoggedUser(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/:id')
+  fetchUserById(@Param('id') id: string) {
+    return this.userService.fetchUserById(id);
   }
   @UseGuards(JwtAuthGuard)
   @Get('user-dashboard-insights')
