@@ -52,3 +52,6 @@ config.h.local
 secrets.json
 .pnp
 .pnp.js
+
+
+final/secrets.h

@@ -27,6 +27,19 @@ export function RfidRegistrationModal({
 }: RfidRegistrationModalProps) {
 	const client = useMqtt();
 
+	// We keep scannedId local because it's a temporary hardware state
+	const [scannedId, setScannedId] = useState<string | null>(null);
+
+	const handleClose = () => {
+		onConfirm();
+		setScannedId(null);
+	};
+
+	const handleConfirm = () => {
+		onConfirm();
+		setScannedId(null);
+	};
+
 	useEffect(() => {
 		if (!client) return;
 
@@ -55,12 +68,6 @@ export function RfidRegistrationModal({
 			client.unsubscribe(topicToSubscribe);
 		};
 	}, [client]);
-	// We keep scannedId local because it's a temporary hardware state
-	const [scannedId, setScannedId] = useState<string | null>(null);
-
-	const handleClose = (open: boolean) => {
-		if (!open) setScannedId(null);
-	};
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleClose}>
@@ -112,7 +119,7 @@ export function RfidRegistrationModal({
 
 				<DialogFooter className="flex flex-col gap-3 sm:flex-col">
 					<Button
-						onClick={() => scannedId && onConfirm()}
+						onClick={handleConfirm}
 						disabled={!scannedId}
 						className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-12 transition-all"
 					>
@@ -120,7 +127,7 @@ export function RfidRegistrationModal({
 					</Button>
 					<Button
 						variant="ghost"
-						onClick={() => handleClose(false)}
+						onClick={handleConfirm}
 						className="text-zinc-500 hover:text-white hover:bg-zinc-900"
 					>
 						Cancel
