@@ -3,6 +3,7 @@ import { FloatingBlob } from "@/components/floating_blob";
 import { useAuth } from "@/context/authContext";
 import { mock_entry_data } from "@/dev_data/entry_log_data";
 import { MembershipType } from "@/enums/membership_type.enum";
+import { formatCurrency } from "@/helpers/currency_formatter";
 import { dateFormatter } from "@/helpers/date_formatter";
 import { getRemainingDays } from "@/helpers/getPlanRemainingDays";
 import { formatTime } from "@/helpers/time_formatter";
@@ -103,7 +104,7 @@ const UserHome = () => {
 							</Text>
 							<View className="flex-row items-end mb-6">
 								<Text className="text-text font-header-bold text-4xl">
-									{user.member?.balance?.toFixed(2) || "0.00"}
+									{formatCurrency(user.member?.balance)}
 								</Text>
 								<Text className="text-neon font-header-bold text-lg ml-2 mb-1">
 									PHP

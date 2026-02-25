@@ -90,7 +90,6 @@ export class UserService {
   }
 
   async fetchAllUsers(id: string, query: UserQueryDto) {
-    console.log(1);
     const {
       page = 1,
       limit = 5,

@@ -1,3 +1,4 @@
+import CustomButton from "@/components/custom_button";
 import { FloatingBlob } from "@/components/floating_blob";
 import { useAuth } from "@/context/authContext";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,6 +15,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const UserProfile = () => {
 	const { signOut } = useAuth();
+
+	const handleSignout = async () => {
+		await signOut();
+	};
 	return (
 		<TouchableWithoutFeedback
 			onPress={Keyboard.dismiss}
@@ -48,7 +53,9 @@ const UserProfile = () => {
 					style={{ flex: 1 }}
 					behavior={Platform.OS === "ios" ? "padding" : "height"}
 				>
-					<SafeAreaView className="flex-1 pt-8"></SafeAreaView>
+					<SafeAreaView className="flex-1 pt-8 justify-center items-center">
+						<CustomButton onPress={handleSignout} title="Signout" />
+					</SafeAreaView>
 				</KeyboardAvoidingView>
 			</View>
 		</TouchableWithoutFeedback>

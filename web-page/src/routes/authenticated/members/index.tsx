@@ -1,5 +1,4 @@
 import { MembersTable } from "@/components/custom_components/members_table";
-import { useMqtt } from "@/context/mqtt_context";
 import { MembershipStatus } from "@/enums/membership_status.enum";
 // Assuming you have this exported in a file, adjust the path as needed
 import { MembershipType } from "@/enums/membership_type.enum";
@@ -26,7 +25,6 @@ const STATUS_TABS: { label: string; value: MembershipStatus | "all" }[] = [
 
 export default function Members() {
 	const { fetchUsers } = useUserStore();
-	const client = useMqtt();
 
 	const [searchInput, setSearchInput] = useState("");
 	const [query, setQuery] = useState<Partial<UserQuery>>({

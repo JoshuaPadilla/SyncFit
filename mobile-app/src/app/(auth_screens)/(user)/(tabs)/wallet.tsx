@@ -1,6 +1,7 @@
 import { useUserStore } from "@/_stores/userStore";
 import { FloatingBlob } from "@/components/floating_blob";
 import { useAuth } from "@/context/authContext";
+import { formatCurrency } from "@/helpers/currency_formatter";
 import { Transaction } from "@/types/transaction";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -101,7 +102,7 @@ const UserWallet = () => {
 
 								<View className="flex-row items-baseline">
 									<Text className="text-white font-header-bold text-4xl">
-										{user?.member?.balance ?? "0.00"}
+										{formatCurrency(user?.member?.balance)}
 									</Text>
 									<Text className="text-neon font-header-bold text-sm ml-1.5">
 										PHP
@@ -168,10 +169,10 @@ const renderTransaction = ({ item }: { item: Transaction }) => {
 						isCredit ? "text-neon" : "text-red-400"
 					}`}
 				>
-					{isCredit ? "+" : "-"} {Number(item.amount).toFixed(2)}
+					{isCredit ? "+" : "-"} {formatCurrency(item.amount)}
 				</Text>
 				<Text className="text-textDim font-body-reg text-[10px] mt-0.5">
-					Bal: {Number(item.runningBalance).toFixed(2)}
+					Bal: {formatCurrency(item.runningBalance)}
 				</Text>
 			</View>
 		</View>

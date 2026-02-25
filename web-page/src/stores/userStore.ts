@@ -1,18 +1,12 @@
 import { api } from "@/lib/api";
+import type { Paginated } from "@/types/paginated_result";
 import type { UserQuery } from "@/types/query_types/member_query";
 import type { User } from "@/types/user";
 import { create } from "zustand";
 
-export type PaginatedUsers = {
-	data: User[];
-	total: number;
-	page: number;
-	limit: number;
-};
-
 type StoreProps = {
 	fetchLoggedUser: () => Promise<User | null>;
-	fetchUsers: (query?: Partial<UserQuery>) => Promise<PaginatedUsers>;
+	fetchUsers: (query?: Partial<UserQuery>) => Promise<Paginated<User>>;
 	fetchUserById: (id: string) => Promise<User | null>;
 };
 
@@ -42,7 +36,6 @@ export const useUserStore = create<StoreProps>(() => ({
 			if (query.maxBalance !== undefined)
 				params.maxBalance = query.maxBalance;
 
-			console.log(params);
 			const res = await api.get("user", { params });
 			return res.data;
 		} catch (error: any) {

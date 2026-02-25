@@ -8,7 +8,7 @@ import { EntryStatus } from 'src/enums/entry_status.enum';
 import { MembershipStatus } from 'src/enums/membership_status.enum';
 import { MembershipType } from 'src/enums/membership_type.enum';
 import { TransactionType } from 'src/enums/transaction_types.enum';
-import { DataSource } from 'typeorm';
+import { Between, DataSource } from 'typeorm';
 
 @Injectable()
 export class RfidService implements OnModuleInit {
@@ -29,11 +29,25 @@ export class RfidService implements OnModuleInit {
   async handleRfidTap(uid: string) {
     // ✅ If we are in registration mode
     if (this.registrationUserId) {
-      await this.saveRfid(uid, this.registrationUserId);
+      try {
+        await this.saveRfid(uid, this.registrationUserId);
+      } catch (err) {
+        console.error('RFID Registration Failed:', err.message);
+
+        this.client.emit(`rfid/registration/${this.registrationUserId}`, {
+          uid: uid,
+          status: 'error',
+          message: err.message,
+        });
+        return;
+      }
+
       this.client.emit(`rfid/registration/${this.registrationUserId}`, {
         uid: uid,
-        status: 'registered',
+        status: 'success',
+        message: 'RFID Registered Successfully',
       });
+
       // Clear timeout
       if (this.registrationTimeout) {
         clearTimeout(this.registrationTimeout);
@@ -69,6 +83,11 @@ export class RfidService implements OnModuleInit {
     this.registrationTimeout = setTimeout(() => {
       this.registrationUserId = null;
       this.registrationTimeout = null;
+      this.client.emit(`rfid/registration/${this.registrationUserId}`, {
+        uid: null,
+        status: 'error',
+        message: 'Registration mode expired',
+      });
       console.log('Registration mode expired');
     }, 30000);
 
@@ -77,6 +96,14 @@ export class RfidService implements OnModuleInit {
 
   private async saveRfid(uid: string, userId: string) {
     const memberRepo = this.dataSource.getRepository(Member);
+
+    const existingMember = await memberRepo.findOne({
+      where: { rfidUid: uid },
+    });
+
+    if (existingMember) {
+      throw new Error('This RFID UID is already registered to another member.');
+    }
     const member = await memberRepo.findOne({
       where: { user: { id: userId } },
     });
@@ -101,6 +128,7 @@ export class RfidService implements OnModuleInit {
         }
 
         // Prepare the log (don't save yet)
+
         const newEntryLog = manager.create(EntryLog, { rfidUid: uid, member });
         const plan = member.membershipPlan;
 
@@ -111,15 +139,15 @@ export class RfidService implements OnModuleInit {
         else if (member.status !== MembershipStatus.ACTIVE)
           denialReason = DeniedReason.INACTIVE;
         else if (
-          member.expirationDate &&
-          new Date(member.expirationDate) < new Date()
-        )
-          denialReason = DeniedReason.EXPIRED;
-        else if (
           plan.type === MembershipType.PREPAID &&
           member.balance < this.entryFee
         )
           denialReason = DeniedReason.INSUFFICIENT_BALANCE;
+        else if (
+          member.expirationDate &&
+          new Date(member.expirationDate) < new Date()
+        )
+          denialReason = DeniedReason.EXPIRED;
 
         // 2. Handle Denied Access
         if (denialReason) {
@@ -132,21 +160,39 @@ export class RfidService implements OnModuleInit {
         // 3. Handle Prepaid Deduction
         if (plan.type === MembershipType.PREPAID) {
           // Corrected: Positive value for decrement
-          await manager.decrement(
-            Member,
-            { id: member.id },
-            'balance',
-            this.entryFee,
-          );
+          const startOfDay = new Date();
+          startOfDay.setHours(0, 0, 0, 0);
 
-          const newTransaction = manager.create(Transaction, {
-            member,
-            amount: this.entryFee,
-            type: TransactionType.DEBIT,
-            description: 'Entry Fee',
-            runningBalance: member.balance - this.entryFee,
+          const endOfDay = new Date();
+          endOfDay.setHours(23, 59, 59, 999);
+
+          const isAlreadyDeducted = await manager.findOne(EntryLog, {
+            where: {
+              member: { id: member.id },
+              entryTime: Between(startOfDay, endOfDay), // Check any time today
+              deductedAmount: this.entryFee,
+            },
           });
-          await manager.save(newTransaction);
+
+          if (!isAlreadyDeducted) {
+            await manager.decrement(
+              Member,
+              { id: member.id },
+              'balance',
+              this.entryFee,
+            );
+
+            newEntryLog.deductedAmount = this.entryFee;
+
+            const newTransaction = manager.create(Transaction, {
+              member,
+              amount: this.entryFee,
+              type: TransactionType.DEBIT,
+              description: 'Entry Fee',
+              runningBalance: member.balance - this.entryFee,
+            });
+            await manager.save(newTransaction);
+          }
         }
 
         // 4. Grant Access

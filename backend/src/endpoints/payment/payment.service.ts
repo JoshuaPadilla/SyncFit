@@ -11,6 +11,7 @@ import { Transaction } from 'src/entities/transaction.entity';
 import { User } from 'src/entities/user.entity';
 import { CheckoutType } from 'src/enums/checkout_types.enum';
 import { MembershipStatus } from 'src/enums/membership_status.enum';
+import { MembershipType } from 'src/enums/membership_type.enum';
 import { PaymentStatus } from 'src/enums/payment_status.enum';
 import { TransactionType } from 'src/enums/transaction_types.enum';
 import { SucessCheckoutMetadata } from 'src/types/success_checkout_metadata';
@@ -177,7 +178,7 @@ export class PaymentService {
     try {
       const user = await queryRunner.manager.findOne(User, {
         where: { id: metadata.userId },
-        relations: ['member'], // Just need the member link here
+        relations: ['member'],
       });
 
       const plan = await queryRunner.manager.findOne(MembershipPlan, {
@@ -198,19 +199,25 @@ export class PaymentService {
         });
       }
 
-      // 2. Calculate Expiry Logic
-      const currentExpiryDate =
-        member.expirationDate && new Date(member.expirationDate) > now
-          ? new Date(member.expirationDate)
-          : now;
+      if (plan.type === MembershipType.PREPAID) {
+        member.balance = Number(member.balance) + Number(plan.price);
+        member.membershipPlan = plan;
+        member.status = MembershipStatus.ACTIVE;
+      } else {
+        // 2. Calculate Expiry Logic
+        const currentExpiryDate =
+          member.expirationDate && new Date(member.expirationDate) > now
+            ? new Date(member.expirationDate)
+            : now;
 
-      const newExpiry = new Date(currentExpiryDate);
-      newExpiry.setDate(newExpiry.getDate() + plan.durationDays);
+        const newExpiry = new Date(currentExpiryDate);
+        newExpiry.setDate(newExpiry.getDate() + plan.durationDays);
 
-      member.lastRenewalDate = now;
-      member.expirationDate = newExpiry;
-      member.membershipPlan = plan;
-      member.status = MembershipStatus.ACTIVE;
+        member.lastRenewalDate = now;
+        member.expirationDate = newExpiry;
+        member.membershipPlan = plan;
+        member.status = MembershipStatus.ACTIVE;
+      }
 
       // Logic for running balance (assuming payment adds to balance or it's just a record)
       // If this is a direct plan purchase, balance might stay same or increase then decrease.
@@ -240,8 +247,6 @@ export class PaymentService {
       await queryRunner.manager.save(Transaction, newTransaction);
 
       await queryRunner.commitTransaction();
-
-      return { success: true, expiry: newExpiry };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
@@ -271,11 +276,6 @@ export class PaymentService {
         'balance',
         metadata.amount,
       );
-
-      const updatedMember = await queryRunner.manager.findOneBy(Member, {
-        id: member.id,
-      });
-      member.balance = updatedMember?.balance || member.balance;
 
       // 3. Create Payment
       const newPayment = queryRunner.manager.create(Payment, {
