@@ -13,6 +13,18 @@ const UserLayout = () => {
 				name="(tabs)"
 				options={{ headerShown: false, animation: "fade_from_bottom" }}
 			/>
+			<Stack.Screen
+				name="topup"
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
+			/>
+			<Stack.Screen
+				name="success_payment"
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
+			/>
+			<Stack.Screen
+				name="failed_payment"
+				options={{ headerShown: false, animation: "fade_from_bottom" }}
+			/>
 		</Stack>
 	);
 };

@@ -160,4 +160,13 @@ export class UserService {
       relations: ['member', 'member.membershipPlan', 'member.entryLogs'],
     });
   }
+
+  async getUserTransactions(id: string) {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: ['member', 'member.transactions'],
+    });
+
+    return user?.member?.transactions || [];
+  }
 }

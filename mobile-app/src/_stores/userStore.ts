@@ -1,5 +1,6 @@
 import { api } from "@/_lib/axios_client";
 import { CreateUserDto } from "@/dtos/createUser";
+import { Transaction } from "@/types/transaction";
 import { User } from "@/types/user";
 import { UserDashboardInsights } from "@/types/user_dashboard_insights";
 import { create } from "zustand";
@@ -8,6 +9,7 @@ type StoreProps = {
 	createUser: (data: CreateUserDto) => Promise<User>;
 	fetchLoggedUser: () => Promise<User | null>;
 	getUserDashboardInsights: () => Promise<UserDashboardInsights>;
+	getUserTransactions: () => Promise<Transaction[]>;
 };
 
 export const useUserStore = create<StoreProps>((set) => ({
@@ -32,6 +34,11 @@ export const useUserStore = create<StoreProps>((set) => ({
 	},
 	getUserDashboardInsights: async () => {
 		const res = await api.get("user/user-dashboard-insights");
+
+		return res.data;
+	},
+	getUserTransactions: async () => {
+		const res = await api.get("user/user-transactions");
 
 		return res.data;
 	},

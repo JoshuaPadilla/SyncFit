@@ -6,6 +6,8 @@ type StoreProps = {
 	createCheckoutSession: (data: {
 		membershipPlanId: string;
 	}) => Promise<string>;
+
+	createTopupCheckoutSession: (data: { amount: number }) => Promise<string>;
 };
 
 export const usePaymentStore = create<StoreProps>((set) => ({
@@ -15,6 +17,18 @@ export const usePaymentStore = create<StoreProps>((set) => ({
 			set({ paymentStoreLoading: true });
 
 			const res = await api.post("payment/plan-checkout", data);
+
+			return res.data.url;
+		} catch {
+		} finally {
+			set({ paymentStoreLoading: false });
+		}
+	},
+	createTopupCheckoutSession: async (data) => {
+		try {
+			set({ paymentStoreLoading: true });
+
+			const res = await api.post("payment/topup-checkout", data);
 
 			return res.data.url;
 		} catch {

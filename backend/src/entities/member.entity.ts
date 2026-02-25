@@ -14,6 +14,7 @@ import {
 import { EntryLog } from './entry_log.entity';
 import { MembershipPlan } from './membership_plan.entity';
 import { Payment } from './payment.entity';
+import { Transaction } from './transaction.entity';
 import { User } from './user.entity';
 
 @Entity('members')
@@ -58,6 +59,9 @@ export class Member {
 
   @OneToMany(() => Payment, (payment) => payment.member)
   payments: Payment[];
+
+  @OneToMany(() => Transaction, (transaction) => transaction.member)
+  transactions: Transaction[];
 
   @Column({ type: 'timestamp', nullable: true })
   dateActivated: Date; // The FIRST time they ever joined

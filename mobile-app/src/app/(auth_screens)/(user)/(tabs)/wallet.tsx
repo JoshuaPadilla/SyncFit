@@ -1,12 +1,14 @@
+import { useUserStore } from "@/_stores/userStore";
 import { FloatingBlob } from "@/components/floating_blob";
+import { useAuth } from "@/context/authContext";
+import { Transaction } from "@/types/transaction";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
 	FlatList,
 	Keyboard,
-	KeyboardAvoidingView,
-	Platform,
 	Text,
 	TouchableOpacity,
 	TouchableWithoutFeedback,
@@ -32,24 +34,25 @@ const transactions = [
 ];
 
 const UserWallet = () => {
-	const renderTransaction = ({ item }: any) => (
-		<View className="flex-row justify-between items-center bg-white/5 p-4 rounded-2xl mb-3 border border-white/5">
-			<View className="flex-1 pr-4">
-				<Text className="text-text font-header-semibold text-base">
-					{item.desc}
-				</Text>
-				<Text className="text-textDim font-body-reg text-xs mt-1">
-					{item.date}
-				</Text>
-			</View>
-			<Text
-				className={`font-body-bold text-base ${item.type === "Credit" ? "text-neon" : "text-white"}`}
-			>
-				{item.type === "Credit" ? "+" : "-"} {item.amount.toFixed(2)}{" "}
-				PHP
-			</Text>
-		</View>
+	const { user } = useAuth();
+	const { getUserTransactions } = useUserStore();
+
+	const [recentTransactions, setRecentTransactions] = useState<Transaction[]>(
+		[],
 	);
+
+	useEffect(() => {
+		const fetchTransactions = async () => {
+			const transactions = await getUserTransactions();
+			setRecentTransactions(transactions);
+		};
+
+		fetchTransactions();
+	}, []);
+
+	const handleTopup = () => {
+		router.push("/(auth_screens)/(user)/topup");
+	};
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -77,69 +80,101 @@ const UserWallet = () => {
 					offset={40}
 				/>
 
-				<KeyboardAvoidingView
-					style={{ flex: 1 }}
-					behavior={Platform.OS === "ios" ? "padding" : "height"}
-				>
-					<SafeAreaView className="flex-1 px-5 pt-8">
-						<Text className="text-text font-header-bold text-2xl mb-6">
-							Wallet
-						</Text>
+				<SafeAreaView className="flex-1 px-5 pt-8">
+					<Text className="text-text font-header-bold text-2xl mb-6">
+						Wallet
+					</Text>
 
-						<LinearGradient
-							colors={[
-								"rgba(0,240,197,0.15)",
-								"rgba(0,240,197,0.02)",
-							]}
-							className="p-6 rounded-3xl border border-neon/20 mb-6 overflow-hidden"
-						>
-							<Text className="text-textDim font-body-semibold text-xs tracking-widest mb-2">
-								CURRENT BALANCE
-							</Text>
-							<View className="flex-row items-end mb-4">
-								<Text className="text-text font-header-bold text-4xl">
-									450.00
+					<LinearGradient
+						colors={[
+							"rgba(0,240,197,0.15)",
+							"rgba(0,240,197,0.02)",
+						]}
+						className="p-6 rounded-3xl border border-neon/20 mb-6 overflow-hidden "
+					>
+						<View className="flex-row  justify-between items-end">
+							{/* Left Side: Label and Amount */}
+							<View className="flex-1">
+								<Text className="text-textDim font-body-semibold text-[10px] tracking-[2px] mb-2 uppercase">
+									Current Balance
 								</Text>
-								<Text className="text-neon font-header-bold text-lg ml-2 mb-1">
-									PHP
-								</Text>
-							</View>
-							<View className="flex-row items-center border border-neon/30 bg-neon/10 px-3 py-1.5 rounded-full self-start">
-								<View className="w-2 h-2 rounded-full bg-neon mr-2" />
-								<Text className="text-neon font-body-bold text-xs tracking-wider">
-									RFID: 8A:3F:DE:12
-								</Text>
-							</View>
-						</LinearGradient>
 
-						<View className="flex-row gap-4 mb-8">
-							<TouchableOpacity className="flex-1 bg-neon py-4 rounded-xl items-center justify-center">
-								<Text className="text-buttonText font-body-bold text-base">
+								<View className="flex-row items-baseline">
+									<Text className="text-white font-header-bold text-4xl">
+										{user?.member?.balance ?? "0.00"}
+									</Text>
+									<Text className="text-neon font-header-bold text-sm ml-1.5">
+										PHP
+									</Text>
+								</View>
+							</View>
+
+							{/* Right Side: Action Button */}
+							<TouchableOpacity
+								className="bg-neon px-4 py-2 rounded-2xl shadow-lg shadow-neon/20"
+								activeOpacity={0.8}
+								onPress={handleTopup}
+							>
+								<Text className="text-black font-body-bold text-sm">
 									Top Up
 								</Text>
 							</TouchableOpacity>
-							<TouchableOpacity className="flex-1 bg-white/10 border border-white/10 py-4 rounded-xl items-center justify-center">
-								<Text className="text-text font-body-bold text-base">
-									Membership
-								</Text>
-							</TouchableOpacity>
 						</View>
+					</LinearGradient>
 
-						<Text className="text-text font-header-bold text-xl mb-4">
-							Recent Transactions
-						</Text>
+					<Text className="text-text font-header-bold text-xl mb-4">
+						Recent Transactions
+					</Text>
 
-						<FlatList
-							data={transactions}
-							keyExtractor={(item) => item.id}
-							renderItem={renderTransaction}
-							showsVerticalScrollIndicator={false}
-							contentContainerStyle={{ paddingBottom: 40 }}
-						/>
-					</SafeAreaView>
-				</KeyboardAvoidingView>
+					<FlatList
+						data={recentTransactions}
+						keyExtractor={(item) => item.id}
+						renderItem={renderTransaction}
+						showsVerticalScrollIndicator={false}
+						contentContainerStyle={{ paddingBottom: 40 }}
+					/>
+				</SafeAreaView>
 			</View>
 		</TouchableWithoutFeedback>
+	);
+};
+
+const renderTransaction = ({ item }: { item: Transaction }) => {
+	const isCredit = item.type === "CREDIT";
+
+	return (
+		<View className="flex-row justify-between items-center bg-white/5 p-4 rounded-2xl mb-3 border border-white/10">
+			{/* Left Side: Info */}
+			<View className="flex-1 pr-4">
+				<Text
+					className="text-white font-header-semibold text-base"
+					numberOfLines={1}
+				>
+					{item.description}
+				</Text>
+				<Text className="text-textDim font-body-reg text-xs mt-1">
+					{new Date(item.createdAt).toLocaleDateString("en-PH", {
+						month: "short",
+						day: "numeric",
+						year: "numeric",
+					})}
+				</Text>
+			</View>
+
+			{/* Right Side: Amount & Running Balance */}
+			<View className="items-end">
+				<Text
+					className={`font-body-bold text-base ${
+						isCredit ? "text-neon" : "text-red-400"
+					}`}
+				>
+					{isCredit ? "+" : "-"} {Number(item.amount).toFixed(2)}
+				</Text>
+				<Text className="text-textDim font-body-reg text-[10px] mt-0.5">
+					Bal: {Number(item.runningBalance).toFixed(2)}
+				</Text>
+			</View>
+		</View>
 	);
 };
 

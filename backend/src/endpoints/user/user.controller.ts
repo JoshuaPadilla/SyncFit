@@ -35,15 +35,21 @@ export class UserController {
     // console.log(req.user.id);
     return this.userService.fetchLoggedUser(req.user.id);
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('user-dashboard-insights')
+  getUserDashboardInsights(@Request() req) {
+    return this.userService.getUserDashboardInsights(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('user-transactions')
+  getUserTransactions(@Request() req) {
+    return this.userService.getUserTransactions(req.user.id);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   fetchUserById(@Param('id') id: string) {
     return this.userService.fetchUserById(id);
-  }
-  @UseGuards(JwtAuthGuard)
-  @Get('user-dashboard-insights')
-  getUserDashboardInsights(@Request() req) {
-    return this.userService.getUserDashboardInsights(req.user.id);
   }
 }

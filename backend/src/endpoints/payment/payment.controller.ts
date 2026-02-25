@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { CreateCheckoutDto } from 'src/dto/createCheckoutDto';
+import { CreateTopupDto } from 'src/dto/createTopupDto';
 import { CheckoutType } from 'src/enums/checkout_types.enum';
 import { JwtAuthGuard } from 'src/guards/jwt_auth.guard';
 import { SucessCheckoutMetadata } from 'src/types/success_checkout_metadata';
@@ -30,6 +31,12 @@ export class PaymentController {
     @Body() createcheckoutDto: CreateCheckoutDto,
   ) {
     return this.paymentService.createPlanCheckout(createcheckoutDto, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('topup-checkout')
+  createTopupSession(@Request() req, @Body() createTopupDto: CreateTopupDto) {
+    return this.paymentService.createTopupCheckout(createTopupDto, req.user);
   }
 
   @HttpCode(HttpStatus.OK)

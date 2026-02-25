@@ -11,6 +11,7 @@ import { EntryLog } from './entities/entry_log.entity';
 import { Member } from './entities/member.entity';
 import { MembershipPlan } from './entities/membership_plan.entity';
 import { Payment } from './entities/payment.entity';
+import { Transaction } from './entities/transaction.entity';
 import { User } from './entities/user.entity';
 
 @Module({
@@ -26,7 +27,7 @@ import { User } from './entities/user.entity';
       ssl: {
         rejectUnauthorized: false,
       },
-      entities: [User, EntryLog, Member, MembershipPlan, Payment],
+      entities: [User, EntryLog, Member, MembershipPlan, Payment, Transaction],
     }),
 
     UserModule,

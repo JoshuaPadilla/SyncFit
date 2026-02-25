@@ -29,18 +29,6 @@ const UserHome = () => {
 		null,
 	);
 
-	console.log(insights);
-
-	const currentMember = {
-		id: "1",
-		membershipType: "monthly",
-		status: "ACTIVE",
-		balance: 1250.0,
-		expirationDate: new Date(new Date().setDate(new Date().getDate() + 15)),
-		createdAt: new Date(),
-		updatedAt: new Date(),
-	};
-
 	const isPrepaid =
 		user?.member?.membershipPlan.type === MembershipType.PREPAID;
 

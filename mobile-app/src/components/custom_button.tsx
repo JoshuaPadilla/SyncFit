@@ -57,7 +57,7 @@ const CustomButton = ({
 
 const styles = StyleSheet.create({
 	button: {
-		height: 64, // h-16
+		height: 50, // h-16
 		borderRadius: 16, // rounded-2xl
 		flexDirection: "row",
 		alignItems: "center",
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 	},
 	text: {
-		fontSize: 18, // text-lg
+		fontSize: 16, // text-lg
 		fontWeight: "900", // font-black
 		marginRight: 8, // mr-2
 		color: COLORS.buttonText,
