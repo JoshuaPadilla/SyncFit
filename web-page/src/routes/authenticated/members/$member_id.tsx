@@ -1,4 +1,5 @@
 import { RfidRegistrationModal } from "@/components/custom_components/rfid_registration_modal";
+import { UserEntryLogTable } from "@/components/custom_components/user_entry_log_table";
 import { dateFormatter } from "@/helpers/date_formatter";
 import { useRfidStore } from "@/stores/rfidStore";
 import { useUserStore } from "@/stores/userStore";
@@ -7,7 +8,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
 	Ban,
 	Calendar,
-	Clock,
 	CreditCard,
 	Edit2,
 	History,
@@ -23,48 +23,6 @@ import { useState } from "react";
 // Updated to match the exact visual data from the screenshot
 
 // Mock Activity Data
-const activityLogs = [
-	{
-		id: 1,
-		type: "entry_granted",
-		title: "Gym Access Granted",
-		desc: "Main Entrance Turnstile",
-		time: "Today, 08:45 AM",
-		color: "bg-green-500",
-	},
-	{
-		id: 2,
-		type: "check_in",
-		title: "Class Check-in",
-		desc: "HIIT Studio - Trainer: Mike R.",
-		time: "Yesterday, 06:30 PM",
-		color: "bg-blue-500",
-	},
-	{
-		id: 3,
-		type: "entry_granted",
-		title: "Gym Access Granted",
-		desc: "Main Entrance Turnstile",
-		time: "Sep 12, 05:15 PM",
-		color: "bg-green-500",
-	},
-	{
-		id: 4,
-		type: "payment",
-		title: "Payment Processed",
-		desc: "Balance top-up: $25.00",
-		time: "Sep 10, 10:00 AM",
-		color: "bg-yellow-500",
-	},
-	{
-		id: 5,
-		type: "entry_denied",
-		title: "Access Denied",
-		desc: "After Hours - Restricted Zone",
-		time: "Sep 05, 11:45 PM",
-		color: "bg-red-500",
-	},
-];
 
 export const Route = createFileRoute("/authenticated/members/$member_id")({
 	component: UserProfileScreen,
@@ -230,10 +188,13 @@ export default function UserProfileScreen() {
 												Current Plan
 											</p>
 											<p className="text-xl font-header-bold text-foreground">
+												{user?.member?.membershipPlan.type.toLocaleUpperCase()}{" "}
+												(
 												{
 													user?.member?.membershipPlan
 														.title
 												}
+												)
 											</p>
 										</div>
 
@@ -283,7 +244,6 @@ export default function UserProfileScreen() {
 
 							{/* Financial Overview */}
 							<div className="bg-card rounded-radius-2xl p-6 border border-white/5 shadow-sm relative overflow-hidden">
-								{/* Subtle gradient effect to match screenshot */}
 								<div className="absolute top-0 right-0 w-64 h-64 bg-[#ff7b00]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
 								<div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 relative z-10">
@@ -304,10 +264,10 @@ export default function UserProfileScreen() {
 										</p>
 										<div className="flex items-baseline gap-1.5">
 											<span className="text-[40px] leading-none font-header-bold text-[#ff7b00]">
-												${user?.member.balance}
+												₱{user?.member.balance}
 											</span>
 											<span className="text-sm text-muted-foreground font-body-bold">
-												USD
+												PHP
 											</span>
 										</div>
 										<p className="text-xs text-muted-foreground/60 mt-2 font-body-med">
@@ -365,53 +325,9 @@ export default function UserProfileScreen() {
 						</div>
 
 						{/* Right Column: Activity Log */}
-						<div className="xl:col-span-1 bg-card rounded-radius-2xl p-6 border border-white/5 flex flex-col shadow-sm">
-							<div className="flex items-center justify-between mb-8">
-								<div className="flex items-center gap-3">
-									<div className="bg-purple-500/10 p-2 rounded-lg">
-										<Clock
-											className="text-[#a855f7]"
-											size={20}
-										/>
-									</div>
-									<h2 className="font-header-semibold text-[17px]">
-										Activity Log
-									</h2>
-								</div>
-								<button className="text-[#ff7b00] text-xs font-body-bold hover:underline">
-									View All
-								</button>
-							</div>
-
-							{/* Timeline */}
-							<div className="flex-1 relative pl-3 space-y-7 before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-[1px] before:bg-white/10">
-								{activityLogs.map((log) => (
-									<div
-										key={log.id}
-										className="relative flex items-start gap-4"
-									>
-										<div
-											className={`absolute -left-[20.5px] w-2.5 h-2.5 rounded-full ${log.color} ring-[6px] ring-card z-10 top-1.5`}
-										/>
-										<div>
-											<p className="text-[10px] uppercase tracking-wider text-muted-foreground font-body-semibold mb-0.5">
-												{log.time}
-											</p>
-											<h3 className="text-[13px] font-header-semibold text-foreground">
-												{log.title}
-											</h3>
-											<p className="text-xs text-muted-foreground/70 font-body-reg mt-0.5">
-												{log.desc}
-											</p>
-										</div>
-									</div>
-								))}
-							</div>
-
-							<button className="w-full mt-8 bg-[#222] hover:bg-[#333] text-muted-foreground hover:text-white text-[11px] font-body-bold py-3.5 rounded-full transition-colors tracking-widest uppercase">
-								DOWNLOAD FULL REPORT
-							</button>
-						</div>
+						<UserEntryLogTable
+							logs={user?.member.entryLogs || []}
+						/>
 					</div>
 				</div>
 			</div>
