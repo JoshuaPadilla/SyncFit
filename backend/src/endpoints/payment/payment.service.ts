@@ -147,6 +147,8 @@ export class PaymentService {
             success_url: successUrl,
             failed_url:
               'intent://failed_payment/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end',
+            cancel_url:
+              'intent://failed_payment/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end', // Add this
             description: 'Syncfit Topup Payment',
           },
         },

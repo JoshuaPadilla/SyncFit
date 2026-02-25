@@ -78,9 +78,9 @@ void setup() {
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port);
-  ESP32PWM::allocateTimer(0);
-  myLock.setPeriodHertz(50);    // Standard 50hz servo
-  myLock.attach(servoPin, 500, 2400); // Attach with min/max pulse widths
+  // ESP32PWM::allocateTimer(0);
+  // myServo.setPeriodHertz(50);    // Standard 50hz servo
+  // myServo.attach(servoPin, 500, 2400); // Attach with min/max pulse widths
 
 
   SPI.begin();           
