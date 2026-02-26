@@ -1,5 +1,4 @@
 // src/auth.tsx
-import { jsonFormatter } from "@/helpers/json_formater";
 import { supabase } from "@/lib/supabase";
 import { useUserStore } from "@/stores/userStore";
 import type { User } from "@/types/user";
@@ -22,7 +21,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
 	const [session, setSession] = useState<Session | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
-	jsonFormatter(session?.user);
 
 	const refreshUser = async () => {
 		try {

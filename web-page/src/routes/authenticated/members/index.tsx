@@ -78,7 +78,13 @@ export default function Members() {
 	};
 
 	const {
-		data: result = { data: [], total: 0, page: 1, limit: LIMIT },
+		data: result = {
+			data: [],
+			total: 0,
+			page: 1,
+			limit: LIMIT,
+			totalPages: 1,
+		},
 		isPending,
 		error,
 		isFetching,
@@ -91,7 +97,7 @@ export default function Members() {
 	const members = result.data;
 	const total = result.total;
 	const currentPage = query.page ?? 1;
-	const totalPages = Math.max(1, Math.ceil(total / LIMIT));
+	const totalPages = result.totalPages ?? 1;
 	const rangeStart = total === 0 ? 0 : (currentPage - 1) * LIMIT + 1;
 	const rangeEnd = Math.min(currentPage * LIMIT, total);
 

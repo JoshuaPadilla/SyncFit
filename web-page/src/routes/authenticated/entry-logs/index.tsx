@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import {
 	Pagination,
 	PaginationContent,
-	PaginationEllipsis,
 	PaginationItem,
 	PaginationLink,
 	PaginationNext,
@@ -54,7 +53,7 @@ export default function RealTimeEntryLogs() {
 	}, [debouncedSearchInput]);
 
 	const {
-		data: result = { data: [], total: 0, page: 1 },
+		data: result = { data: [], total: 0, page: 1, totalPages: 1, limit: 5 },
 		isPending,
 		error,
 		isFetching,
@@ -64,7 +63,20 @@ export default function RealTimeEntryLogs() {
 		staleTime: 1000 * 60 * 5,
 	});
 
-	console.log(result);
+	const currentPage = result.page || 1;
+	const totalPages = result.totalPages || 1;
+	const totalItems = result.total || 0;
+	const limit = result.limit || 5;
+
+	// Calculate the "Showing X to Y" values
+	const startItem = totalItems === 0 ? 0 : (currentPage - 1) * limit + 1;
+	const endItem = Math.min(currentPage * limit, totalItems);
+
+	const handlePageChange = (newPage: number) => {
+		if (newPage >= 1 && newPage <= totalPages) {
+			setQuery((prev) => ({ ...prev, page: newPage }));
+		}
+	};
 
 	return (
 		<div className="min-h-screen bg-background text-foreground p-8 flex flex-col gap-8 font-body-reg dark">
@@ -303,70 +315,76 @@ export default function RealTimeEntryLogs() {
 				</div>
 
 				{/* Pagination */}
-				<div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground font-body-reg">
+				<div className="p-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground font-body-reg">
 					<div>
 						Showing{" "}
 						<span className="text-foreground font-body-bold">
-							1
+							{startItem}
 						</span>{" "}
 						to{" "}
 						<span className="text-foreground font-body-bold">
-							6
+							{endItem}
 						</span>{" "}
 						of{" "}
 						<span className="text-foreground font-body-bold">
-							1248
+							{totalItems}
 						</span>{" "}
 						results
 					</div>
+
 					<Pagination className="mx-0 w-auto">
 						<PaginationContent>
 							<PaginationItem>
 								<PaginationPrevious
 									href="#"
-									className="h-8 px-3 text-xs"
+									onClick={(e) => {
+										e.preventDefault();
+										handlePageChange(currentPage - 1);
+									}}
+									className={`h-8 px-3 text-xs ${
+										currentPage <= 1
+											? "pointer-events-none opacity-50"
+											: ""
+									}`}
 								/>
 							</PaginationItem>
-							<PaginationItem>
-								<PaginationLink
-									href="#"
-									isActive
-									className="h-8 w-8 text-xs font-body-bold border-primary text-primary bg-primary/10 hover:bg-primary/20"
-								>
-									1
-								</PaginationLink>
-							</PaginationItem>
-							<PaginationItem>
-								<PaginationLink
-									href="#"
-									className="h-8 w-8 text-xs"
-								>
-									2
-								</PaginationLink>
-							</PaginationItem>
-							<PaginationItem>
-								<PaginationLink
-									href="#"
-									className="h-8 w-8 text-xs"
-								>
-									3
-								</PaginationLink>
-							</PaginationItem>
-							<PaginationItem>
-								<PaginationEllipsis className="h-8 w-8" />
-							</PaginationItem>
-							<PaginationItem>
-								<PaginationLink
-									href="#"
-									className="h-8 w-8 text-xs"
-								>
-									10
-								</PaginationLink>
-							</PaginationItem>
+
+							{/* Dynamically render page links based on totalPages */}
+							{[...Array(totalPages)].map((_, idx) => {
+								const pageNum = idx + 1;
+								return (
+									<PaginationItem key={pageNum}>
+										<PaginationLink
+											href="#"
+											isActive={pageNum === currentPage}
+											onClick={(e) => {
+												e.preventDefault();
+												handlePageChange(pageNum);
+											}}
+											className={`h-8 w-8 text-xs ${
+												pageNum === currentPage
+													? "font-body-bold border-primary text-primary bg-primary/10 hover:bg-primary/20"
+													: ""
+											}`}
+										>
+											{pageNum}
+										</PaginationLink>
+									</PaginationItem>
+								);
+							})}
+
 							<PaginationItem>
 								<PaginationNext
 									href="#"
-									className="h-8 px-3 text-xs"
+									onClick={(e) => {
+										e.preventDefault();
+										handlePageChange(currentPage + 1);
+									}}
+									className={`h-8 px-3 text-xs ${
+										currentPage >= totalPages
+											? "pointer-events-none opacity-50"
+											: ""
+									}`}
 								/>
 							</PaginationItem>
 						</PaginationContent>
