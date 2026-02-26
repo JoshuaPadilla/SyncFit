@@ -194,7 +194,7 @@ export default function RealTimeEntryLogs() {
 							</TableRow>
 						</TableHeader>
 						<TableBody className="font-body-reg text-sm divide-border/50">
-							{result.data.map((log: any) => {
+							{result.data.map((log) => {
 								const isGranted = log.status === "granted";
 								return (
 									<TableRow
@@ -256,8 +256,8 @@ export default function RealTimeEntryLogs() {
 										</TableCell>
 
 										<TableCell className="text-muted-foreground">
-											{log.member?.membershipPlan
-												?.title || "N/A"}
+											{log.member?.membershipPlan?.type.toLocaleUpperCase() ||
+												"N/A"}
 										</TableCell>
 
 										<TableCell

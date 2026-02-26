@@ -49,7 +49,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
-  fetchUserById(@Param('id') id: string) {
+  fetchUserById(@Param('id') id: string, @Request() req) {
     return this.userService.fetchUserById(id);
   }
 }
