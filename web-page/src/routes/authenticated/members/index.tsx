@@ -1,4 +1,5 @@
 import { MembersTable } from "@/components/custom_components/members_table";
+import ScreenSkeleton from "@/components/custom_components/screen_skeleton";
 import { MembershipStatus } from "@/enums/membership_status.enum";
 // Assuming you have this exported in a file, adjust the path as needed
 import { MembershipType } from "@/enums/membership_type.enum";
@@ -12,6 +13,8 @@ import { useDebounce } from "use-debounce";
 
 export const Route = createFileRoute("/authenticated/members/")({
 	component: Members,
+	pendingComponent: () => <ScreenSkeleton />,
+	pendingMinMs: 0,
 });
 
 const LIMIT = 5;
@@ -178,9 +181,7 @@ export default function Members() {
 			<div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col">
 				<div className="overflow-x-auto">
 					<div
-						className={
-							isFetching ? "opacity-50 pointer-events-none" : ""
-						}
+						className={`${isFetching ? "opacity-50 pointer-events-none" : ""} px-4 py-6`}
 					>
 						<MembersTable
 							members={members}

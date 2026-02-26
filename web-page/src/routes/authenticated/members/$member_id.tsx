@@ -1,9 +1,8 @@
 import { RfidRegistrationModal } from "@/components/custom_components/rfid_registration_modal";
+import { SpecificEntitySkeleton } from "@/components/custom_components/specific_entity_skeleton";
 import { UserEntryLogTable } from "@/components/custom_components/user_entry_log_table";
 import { dateFormatter } from "@/helpers/date_formatter";
 import { useRfidStore } from "@/stores/rfidStore";
-import { useUserStore } from "@/stores/userStore";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	Ban,
@@ -26,26 +25,25 @@ import { useState } from "react";
 
 export const Route = createFileRoute("/authenticated/members/$member_id")({
 	component: UserProfileScreen,
-	loader: async ({ params }) => {
-		console.log(params.member_id);
-		return { member_id: params.member_id };
+	loader: async ({ params, context }) => {
+		const user = await context.queryClient.ensureQueryData({
+			queryKey: ["user", params.member_id],
+			queryFn: () => context.user.fetchUserById(params.member_id),
+		});
+		return { user };
 	},
+	pendingComponent: () => <SpecificEntitySkeleton />,
+	pendingMs: 0,
 });
 
 export default function UserProfileScreen() {
-	const { fetchUserById } = useUserStore();
 	const { registerRfid } = useRfidStore();
-	const { member_id } = Route.useLoaderData();
+	const { user } = Route.useLoaderData();
 
 	const [modalOpen, setModalOpen] = useState(false);
 
-	const { data: user } = useSuspenseQuery({
-		queryKey: ["user", member_id],
-		queryFn: () => fetchUserById(member_id),
-	});
-
 	const handleRegisterRfid = async () => {
-		await registerRfid(member_id);
+		await registerRfid(user!.id);
 		setModalOpen(true);
 	};
 
@@ -54,7 +52,7 @@ export default function UserProfileScreen() {
 			<RfidRegistrationModal
 				isOpen={modalOpen}
 				onConfirm={() => setModalOpen(false)}
-				memberId={member_id}
+				memberId={user!.id}
 			/>
 			<div className="min-h-screen bg-background text-foreground p-8 font-body-reg dark">
 				<div className="max-w-7xl mx-auto space-y-6">

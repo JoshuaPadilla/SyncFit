@@ -85,8 +85,8 @@ export function MembersTable({ members, isPending, error }: Props) {
 
 	return (
 		<Table>
-			<TableHeader>
-				<TableRow>
+			<TableHeader className="bg-background/20">
+				<TableRow className="border-border/50 hover:bg-transparent">
 					<TableHead>Member Name</TableHead>
 					<TableHead>Email</TableHead>
 					<TableHead>RFID UID</TableHead>

@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,6 +13,19 @@ import {
 	PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -19,15 +33,19 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { EntryStatus } from "@/enums/entry_status.enum";
 import { formatCurrency } from "@/helpers/currency_formatter";
 import { dateFormatter } from "@/helpers/date_formatter";
 import { formatTime } from "@/helpers/time_formatter";
+import { cn } from "@/lib/utils";
 import { useEntryLogStore } from "@/stores/entryLogStore";
 import type { EntryLogQuery } from "@/types/query_types/entry_log_query";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Calendar, Download, Filter, RefreshCw, Search } from "lucide-react";
+import { format } from "date-fns";
+import { CalendarIcon, Download, RefreshCw, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { DateRange } from "react-day-picker";
 import { useDebounce } from "use-debounce";
 
 export const Route = createFileRoute("/authenticated/entry-logs/")({
@@ -42,6 +60,13 @@ export default function RealTimeEntryLogs() {
 		page: 1,
 	});
 
+	const [statusFilter, setStatusFilter] = useState<EntryStatus | "all">(
+		"all",
+	);
+	const [dateRange, setDateRange] = useState<DateRange | undefined>(
+		undefined,
+	);
+
 	const [debouncedSearchInput] = useDebounce(searchInput, 500);
 
 	useEffect(() => {
@@ -49,8 +74,12 @@ export default function RealTimeEntryLogs() {
 			...prev,
 			page: 1,
 			search: debouncedSearchInput || undefined,
+			status: statusFilter === "all" ? undefined : statusFilter,
+			// Map the shadcn DateRange object to your query params
+			startDate: dateRange?.from ? new Date(dateRange.from) : undefined,
+			endDate: dateRange?.to ? new Date(dateRange.to) : undefined,
 		}));
-	}, [debouncedSearchInput]);
+	}, [debouncedSearchInput, statusFilter, dateRange]);
 
 	const {
 		data: result = { data: [], total: 0, page: 1, totalPages: 1, limit: 5 },
@@ -104,10 +133,6 @@ export default function RealTimeEntryLogs() {
 				</div>
 
 				<div className="flex items-center gap-3">
-					<Button variant="outline" className="gap-2 font-body-med">
-						<Calendar size={16} />
-						Oct 24, 2023 - Today
-					</Button>
 					<Button className="gap-2 font-body-bold shadow-lg shadow-primary/20">
 						<Download size={16} />
 						Export CSV
@@ -124,7 +149,7 @@ export default function RealTimeEntryLogs() {
 					{ label: "Peak Hour", value: "6:00 PM" },
 				].map((stat, idx) => (
 					<Card key={idx} className="border-border shadow-none">
-						<CardContent className="p-5 flex flex-col justify-center">
+						<CardContent className=" flex flex-col justify-center">
 							<p className="text-muted-foreground font-body-med text-sm mb-1">
 								{stat.label}
 							</p>
@@ -159,18 +184,109 @@ export default function RealTimeEntryLogs() {
 							className="pl-10 font-body-reg bg-background/50 border-border h-10"
 						/>
 					</div>
-					<div className="flex items-center gap-2">
-						<Button
-							variant="ghost"
-							size="icon"
-							className="text-muted-foreground"
+					<div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+						{/* Status Filter */}
+						<Select
+							value={statusFilter}
+							onValueChange={(value) =>
+								setStatusFilter(value as EntryStatus | "all")
+							}
 						>
-							<Filter size={18} />
-						</Button>
+							<SelectTrigger className="w-[160px] h-10 bg-background/50">
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">
+									All Statuses
+								</SelectItem>
+								<SelectItem value={EntryStatus.GRANTED}>
+									Granted
+								</SelectItem>
+								<SelectItem value={EntryStatus.DENIED}>
+									Denied
+								</SelectItem>
+							</SelectContent>
+						</Select>
+
+						{/* Date Range Filters */}
+						<div className="grid gap-2">
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										id="date"
+										variant={"outline"}
+										className={cn(
+											"w-[260px] justify-start text-left font-normal bg-background/50",
+											!dateRange &&
+												"text-muted-foreground",
+										)}
+									>
+										<CalendarIcon className="mr-2 h-4 w-4" />
+										{dateRange?.from ? (
+											dateRange.to ? (
+												<>
+													{format(
+														dateRange.from,
+														"LLL dd, y",
+													)}{" "}
+													-{" "}
+													{format(
+														dateRange.to,
+														"LLL dd, y",
+													)}
+												</>
+											) : (
+												format(
+													dateRange.from,
+													"LLL dd, y",
+												)
+											)
+										) : (
+											<span>Pick a date range</span>
+										)}
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent
+									className="w-auto p-0"
+									align="end"
+								>
+									<Calendar
+										autoFocus
+										mode="range"
+										defaultMonth={dateRange?.from}
+										selected={dateRange}
+										onSelect={(range) =>
+											setDateRange(range)
+										}
+										numberOfMonths={2}
+									/>
+								</PopoverContent>
+							</Popover>
+						</div>
+
+						{/* Clear Filters Button (Shows only if a filter is active) */}
+						{(statusFilter !== "all" || dateRange?.from) && (
+							<Button
+								variant="ghost"
+								onClick={() => {
+									setStatusFilter("all");
+									setDateRange(undefined); // Reset the date range
+								}}
+								className="text-muted-foreground hover:text-foreground px-2"
+							>
+								Clear
+							</Button>
+						)}
+
+						{/* Existing Refresh Button */}
 						<Button
 							variant="ghost"
 							size="icon"
 							className="text-muted-foreground"
+							onClick={() => {
+								// Optional: trigger manual refetch here if needed
+								// refetch();
+							}}
 						>
 							<RefreshCw size={18} />
 						</Button>
@@ -178,7 +294,7 @@ export default function RealTimeEntryLogs() {
 				</div>
 
 				{/* Table */}
-				<div className="overflow-x-auto">
+				<div className="overflow-x-auto px-4">
 					<Table>
 						<TableHeader className="bg-background/20">
 							<TableRow className="border-border/50 hover:bg-transparent">
@@ -206,110 +322,176 @@ export default function RealTimeEntryLogs() {
 							</TableRow>
 						</TableHeader>
 						<TableBody className="font-body-reg text-sm divide-border/50">
-							{result.data.map((log) => {
-								const isGranted = log.status === "granted";
-								return (
+							{/* 1. LOADING STATE */}
+							{isPending ? (
+								Array.from({ length: 5 }).map((_, idx) => (
 									<TableRow
-										key={log.id}
-										className="border-border/50 hover:bg-background/30 transition-colors group"
+										key={`skeleton-${idx}`}
+										className="border-border/50"
 									>
-										<TableCell className="text-muted-foreground font-mono text-xs py-4">
-											{dateFormatter(log.createdAt)}{" "}
-											{formatTime(log.createdAt)}
+										<TableCell className="py-4">
+											<Skeleton className="h-4 w-24" />
 										</TableCell>
-
-										<TableCell className="flex items-center gap-3">
-											{log.member ? (
-												<>
-													<Avatar className="h-8 w-8">
-														<AvatarFallback className="bg-secondary text-secondary-foreground font-header-bold text-xs uppercase">
-															{
-																log.member.user
-																	.firstName[0]
-															}
-															{
-																log.member.user
-																	.lastName[0]
-															}
-														</AvatarFallback>
-													</Avatar>
-													<span className="text-foreground font-body-semibold">
-														{
-															log.member.user
-																.firstName
-														}{" "}
-														{
-															log.member.user
-																.lastName
-														}
-													</span>
-												</>
-											) : (
-												<>
-													<Avatar className="h-8 w-8 border border-border">
-														<AvatarFallback className="bg-background text-muted-foreground font-header-bold text-xs">
-															?
-														</AvatarFallback>
-													</Avatar>
-													<span className="text-muted-foreground italic font-body-reg">
-														Unknown Card
-													</span>
-												</>
-											)}
-										</TableCell>
-
 										<TableCell>
-											<Badge
-												variant="outline"
-												className="bg-background text-muted-foreground font-mono text-[11px] rounded font-normal"
-											>
-												{log.rfidUid}
-											</Badge>
+											<div className="flex items-center gap-3">
+												<Skeleton className="h-8 w-8 rounded-full" />
+												<Skeleton className="h-4 w-32" />
+											</div>
 										</TableCell>
-
-										<TableCell className="text-muted-foreground">
-											{log.member?.membershipPlan?.type.toLocaleUpperCase() ||
-												"N/A"}
-										</TableCell>
-
-										<TableCell
-											className={`font-body-semibold ${
-												log.deductedAmount
-													? "text-primary"
-													: "text-muted-foreground"
-											}`}
-										>
-											{log.deductedAmount
-												? `- ₱ ${formatCurrency(log.deductedAmount)}`
-												: "-"}
-										</TableCell>
-
 										<TableCell>
-											<Badge
-												variant="outline"
-												className={`font-body-bold tracking-wide uppercase ${
-													isGranted
-														? "bg-primary/10 text-primary border-primary/20"
-														: "bg-destructive/10 text-destructive border-destructive/20"
-												}`}
-											>
-												{log.status}
-											</Badge>
+											<Skeleton className="h-4 w-20" />
 										</TableCell>
-
-										<TableCell
-											className={
-												isGranted
-													? "text-muted-foreground"
-													: "text-destructive font-body-med"
-											}
-										>
-											{log.deniedReason ||
-												"Access Allowed"}
+										<TableCell>
+											<Skeleton className="h-4 w-16" />
+										</TableCell>
+										<TableCell>
+											<Skeleton className="h-4 w-16" />
+										</TableCell>
+										<TableCell>
+											<Skeleton className="h-6 w-16 rounded-full" />
+										</TableCell>
+										<TableCell>
+											<Skeleton className="h-4 w-24" />
 										</TableCell>
 									</TableRow>
-								);
-							})}
+								))
+							) : (
+								/* 2. ACTUAL DATA ROWS */
+								<>
+									{result.data.map((log) => {
+										const isGranted =
+											log.status === "granted";
+										return (
+											<TableRow
+												key={log.id}
+												className="border-border/50 hover:bg-background/30 transition-colors group"
+											>
+												<TableCell className="text-muted-foreground font-mono text-xs py-4">
+													{dateFormatter(
+														log.createdAt,
+													)}{" "}
+													{formatTime(log.createdAt)}
+												</TableCell>
+
+												<TableCell className="flex items-center gap-3">
+													{log.member ? (
+														<>
+															<Avatar className="h-8 w-8">
+																<AvatarFallback className="bg-secondary text-secondary-foreground font-header-bold text-xs uppercase">
+																	{
+																		log
+																			.member
+																			.user
+																			.firstName[0]
+																	}
+																	{
+																		log
+																			.member
+																			.user
+																			.lastName[0]
+																	}
+																</AvatarFallback>
+															</Avatar>
+															<span className="text-foreground font-body-semibold">
+																{
+																	log.member
+																		.user
+																		.firstName
+																}{" "}
+																{
+																	log.member
+																		.user
+																		.lastName
+																}
+															</span>
+														</>
+													) : (
+														<>
+															<Avatar className="h-8 w-8 border border-border">
+																<AvatarFallback className="bg-background text-muted-foreground font-header-bold text-xs">
+																	?
+																</AvatarFallback>
+															</Avatar>
+															<span className="text-muted-foreground italic font-body-reg">
+																Unknown Card
+															</span>
+														</>
+													)}
+												</TableCell>
+
+												<TableCell>
+													<Badge
+														variant="outline"
+														className="bg-background text-muted-foreground font-mono text-[11px] rounded font-normal"
+													>
+														{log.rfidUid}
+													</Badge>
+												</TableCell>
+
+												<TableCell className="text-muted-foreground">
+													{log.member?.membershipPlan?.type.toLocaleUpperCase() ||
+														"N/A"}
+												</TableCell>
+
+												<TableCell
+													className={`font-body-semibold ${
+														log.deductedAmount
+															? "text-primary"
+															: "text-muted-foreground"
+													}`}
+												>
+													{log.deductedAmount
+														? `- ₱ ${formatCurrency(log.deductedAmount)}`
+														: "-"}
+												</TableCell>
+
+												<TableCell>
+													<Badge
+														variant="outline"
+														className={`font-body-bold tracking-wide uppercase ${
+															isGranted
+																? "bg-primary/10 text-primary border-primary/20"
+																: "bg-destructive/10 text-destructive border-destructive/20"
+														}`}
+													>
+														{log.status}
+													</Badge>
+												</TableCell>
+
+												<TableCell
+													className={
+														isGranted
+															? "text-muted-foreground"
+															: "text-destructive font-body-med"
+													}
+												>
+													{log.deniedReason ||
+														"Access Allowed"}
+												</TableCell>
+											</TableRow>
+										);
+									})}
+
+									{/* 3. EMPTY PADDING ROWS TO MAINTAIN 5 ROW HEIGHT */}
+									{Array.from({
+										length: Math.max(
+											0,
+											5 - result.data.length,
+										),
+									}).map((_, idx) => (
+										<TableRow
+											key={`empty-${idx}`}
+											className="border-border/50 hover:bg-transparent pointer-events-none"
+										>
+											{/* h-[73px] represents the approximate height of your standard populated row */}
+											<TableCell
+												colSpan={7}
+												className="h-[73px] py-4"
+											></TableCell>
+										</TableRow>
+									))}
+								</>
+							)}
 						</TableBody>
 					</Table>
 				</div>
@@ -349,7 +531,6 @@ export default function RealTimeEntryLogs() {
 								/>
 							</PaginationItem>
 
-							{/* Dynamically render page links based on totalPages */}
 							{[...Array(totalPages)].map((_, idx) => {
 								const pageNum = idx + 1;
 								return (

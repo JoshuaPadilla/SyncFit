@@ -13,11 +13,12 @@ export const Route = createFileRoute("/authenticated")({
 			});
 		}
 	},
+	pendingMs: 0,
 });
 
 function AuthenticatedRoute() {
 	return (
-		<SidebarProvider>
+		<SidebarProvider className="dark">
 			<AppSidebar />
 			<SidebarInset>
 				<MqttProvider>
