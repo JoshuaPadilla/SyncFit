@@ -6,7 +6,7 @@ import { create } from "zustand";
 
 type StoreProps = {
 	fetchLogs: (
-		query?: Partial<EntryLogByUserQuery>,
+		query: Partial<EntryLogByUserQuery>,
 	) => Promise<Paginated<EntryLog>>;
 };
 
