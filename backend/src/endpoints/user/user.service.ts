@@ -156,7 +156,7 @@ export class UserService {
   async fetchUserById(id: string) {
     return await this.userRepo.findOne({
       where: { id },
-      relations: ['member', 'member.membershipPlan', 'member.entryLogs'],
+      relations: ['member', 'member.membershipPlan'],
     });
   }
 

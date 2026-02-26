@@ -13,6 +13,7 @@ export class EntryLogService {
   ) {}
 
   async getEntryLogsByMember(query: EntryLogByMemberQueryDto) {
+    console.log(query);
     const {
       memberId,
       status,
@@ -66,6 +67,8 @@ export class EntryLogService {
       .take(limit);
 
     const [data, total] = await qb.getManyAndCount();
+
+    console.log(data);
 
     return {
       data,

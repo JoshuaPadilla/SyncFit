@@ -144,6 +144,7 @@ export class RfidService implements OnModuleInit {
         )
           denialReason = DeniedReason.INSUFFICIENT_BALANCE;
         else if (
+          plan.type !== MembershipType.PREPAID &&
           member.expirationDate &&
           new Date(member.expirationDate) < new Date()
         )

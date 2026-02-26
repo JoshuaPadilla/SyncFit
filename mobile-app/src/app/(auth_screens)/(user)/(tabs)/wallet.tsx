@@ -1,4 +1,5 @@
 import { useUserStore } from "@/_stores/userStore";
+import { EmptyState } from "@/components/empty_state";
 import { FloatingBlob } from "@/components/floating_blob";
 import { useAuth } from "@/context/authContext";
 import { formatCurrency } from "@/helpers/currency_formatter";
@@ -6,6 +7,7 @@ import { Transaction } from "@/types/transaction";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { BanknoteX } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
 	FlatList,
@@ -132,7 +134,21 @@ const UserWallet = () => {
 						keyExtractor={(item) => item.id}
 						renderItem={renderTransaction}
 						showsVerticalScrollIndicator={false}
-						contentContainerStyle={{ paddingBottom: 40 }}
+						contentContainerStyle={{
+							paddingBottom: 40,
+							flexGrow: 1,
+							justifyContent:
+								recentTransactions.length === 0
+									? "center"
+									: "flex-start", // Centers only if empty
+						}}
+						ListEmptyComponent={() => (
+							<EmptyState
+								title="No Transactions"
+								message="You haven't made any transactions yet."
+								icon={<BanknoteX color="#FFFFFF" size={24} />}
+							/>
+						)}
 					/>
 				</SafeAreaView>
 			</View>

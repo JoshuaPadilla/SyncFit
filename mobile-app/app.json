@@ -1,83 +1,84 @@
 {
-	"expo": {
-		"name": "SyncFit",
-		"slug": "SyncFit",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "./assets/images/app_logo.png",
-		"scheme": "SyncFit",
-		"userInterfaceStyle": "automatic",
-		"newArchEnabled": true,
-		"ios": {
-			"supportsTablet": true
-		},
-		"android": {
-			"adaptiveIcon": {
-				"foregroundImage": "./assets/images/app_logo.png",
-				"resizeMode": "contain",
-				"backgroundColor": "#0d2120"
-			},
-			"edgeToEdgeEnabled": true,
-			"predictiveBackGestureEnabled": false,
-			"package": "com.joshua129.syncfit",
-			"usesCleartextTraffic": true
-		},
-		"web": {
-			"output": "static",
-			"favicon": "./assets/images/app_logo.png",
-			"bundler": "metro"
-		},
-		"plugins": [
-			"expo-router",
-			[
-				"expo-web-browser",
-				{
-					"experimentalLauncherActivity": true
-				}
-			],
-			[
-				"expo-secure-store",
-				{
-					"configureAndroidBackup": true,
-					"faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
-				}
-			],
-			[
-				"expo-splash-screen",
-				{
-					"image": "./assets/images/splash_icon.png",
-					"backgroundColor": "#0d2120"
-				}
-			],
-			[
-				"@react-native-google-signin/google-signin",
-				{
-					"iosUrlScheme": "com.googleusercontent.apps.YOUR_IOS_CLIENT_ID"
-				}
-			],
-			[
-				"expo-font",
-				{
-					"fonts": [
-						"./assets/fonts/Montserrat-Regular.ttf",
-						"./assets/fonts/Montserrat-Medium.ttf",
-						"./assets/fonts/Montserrat-SemiBold.ttf",
-						"./assets/fonts/Montserrat-Bold.ttf",
-						"./assets/fonts/Montserrat-ExtraBold.ttf",
-						"./assets/fonts/Inter_28pt-Light.ttf",
-						"./assets/fonts/Inter_28pt-Regular.ttf",
-						"./assets/fonts/Inter_28pt-Medium.ttf",
-						"./assets/fonts/Inter_28pt-SemiBold.ttf",
-						"./assets/fonts/Inter_28pt-Bold.ttf"
-					]
-				}
-			],
-			"expo-secure-store",
-			"expo-web-browser"
-		],
-		"experiments": {
-			"typedRoutes": true,
-			"reactCompiler": true
-		}
-	}
+  "expo": {
+    "name": "SyncFit",
+    "slug": "SyncFit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/app_logo.png",
+    "scheme": "SyncFit",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/app_logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#0d2120"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.joshua129.syncfit",
+      "usesCleartextTraffic": true
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/app_logo.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-web-browser",
+        {
+          "experimentalLauncherActivity": true
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash_icon.png",
+          "backgroundColor": "#0d2120"
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.YOUR_IOS_CLIENT_ID"
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Montserrat-Regular.ttf",
+            "./assets/fonts/Montserrat-Medium.ttf",
+            "./assets/fonts/Montserrat-SemiBold.ttf",
+            "./assets/fonts/Montserrat-Bold.ttf",
+            "./assets/fonts/Montserrat-ExtraBold.ttf",
+            "./assets/fonts/Inter_28pt-Light.ttf",
+            "./assets/fonts/Inter_28pt-Regular.ttf",
+            "./assets/fonts/Inter_28pt-Medium.ttf",
+            "./assets/fonts/Inter_28pt-SemiBold.ttf",
+            "./assets/fonts/Inter_28pt-Bold.ttf"
+          ]
+        }
+      ],
+      "expo-secure-store",
+      "expo-web-browser",
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
 }

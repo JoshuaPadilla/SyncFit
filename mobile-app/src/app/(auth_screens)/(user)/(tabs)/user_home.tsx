@@ -1,12 +1,14 @@
+import { useEntryLogStore } from "@/_stores/entryLogStore";
 import { useUserStore } from "@/_stores/userStore";
 import { FloatingBlob } from "@/components/floating_blob";
 import { useAuth } from "@/context/authContext";
-import { mock_entry_data } from "@/dev_data/entry_log_data";
+import { EntryStatus } from "@/enums/entry_status.enum";
 import { MembershipType } from "@/enums/membership_type.enum";
 import { formatCurrency } from "@/helpers/currency_formatter";
 import { dateFormatter } from "@/helpers/date_formatter";
 import { getRemainingDays } from "@/helpers/getPlanRemainingDays";
 import { formatTime } from "@/helpers/time_formatter";
+import { EntryLog } from "@/types/entry_log";
 import { UserDashboardInsights } from "@/types/user_dashboard_insights";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -25,10 +27,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const UserHome = () => {
 	const { user } = useAuth();
+	const { fetchLogs } = useEntryLogStore();
 	const { getUserDashboardInsights } = useUserStore();
 	const [insights, setInsights] = useState<UserDashboardInsights | null>(
 		null,
 	);
+
+	const [recentEntries, setRecentEntries] = useState<EntryLog[]>([]);
 
 	const isPrepaid =
 		user?.member?.membershipPlan.type === MembershipType.PREPAID;
@@ -43,7 +48,11 @@ const UserHome = () => {
 	useEffect(() => {
 		const init = async () => {
 			const result = await getUserDashboardInsights();
-
+			const logs = await fetchLogs({
+				memberId: user?.member?.id,
+				limit: 5,
+			});
+			if (logs) setRecentEntries(logs.data);
 			if (result) setInsights(result);
 		};
 
@@ -218,7 +227,7 @@ const UserHome = () => {
 						contentContainerClassName="gap-y-3 pb-[100px]"
 						showsVerticalScrollIndicator={false}
 					>
-						{mock_entry_data.map((log) => (
+						{recentEntries.map((log) => (
 							<View
 								key={log.id}
 								className="bg-white/5 flex-row items-center p-4 rounded-2xl border border-white/5"
@@ -235,9 +244,9 @@ const UserHome = () => {
 								<View className="flex-1">
 									<View className="flex-row items-center">
 										<Text
-											className={`font-header-semibold text-base ${log.status === "GRANTED" ? "text-text" : "text-red-400"}`}
+											className={`font-header-semibold text-base ${log.status === EntryStatus.GRANTED ? "text-text" : "text-red-400"}`}
 										>
-											{log.status === "GRANTED"
+											{log.status === EntryStatus.GRANTED
 												? "Entry Granted"
 												: "Entry Denied"}
 										</Text>
@@ -245,7 +254,7 @@ const UserHome = () => {
 
 									<Text className="text-textDim font-body-reg text-xs mt-1">
 										{/* Fallback for the reason if denied */}
-										{log.status === "DENIED"
+										{log.status === EntryStatus.DENIED
 											? `Reason: ${log.deniedReason?.replace("_", " ") || "Unauthorized"}`
 											: `${new Date(log.entryTime).toLocaleDateString()} at ${formatTime(log.entryTime)}`}
 									</Text>
@@ -263,14 +272,14 @@ const UserHome = () => {
 									>
 										{!log.deductedAmount ||
 										log.deductedAmount <= 0
-											? log.status === "GRANTED"
+											? log.status === EntryStatus.GRANTED
 												? "Included"
 												: "---"
 											: `-${log.deductedAmount} PHP`}
 									</Text>
 
 									{/* Subtle secondary timestamp for Denied logs */}
-									{log.status === "DENIED" && (
+									{log.status === EntryStatus.DENIED && (
 										<Text className="text-[10px] text-white/30 mt-1">
 											{formatTime(log.entryTime)}
 										</Text>
