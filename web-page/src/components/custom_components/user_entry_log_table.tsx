@@ -29,27 +29,22 @@ export const UserEntryLogTable: React.FC<EntryLogTableProps> = ({
 		const title = isGranted ? "Entry Granted" : "Entry Denied";
 
 		// Determine the descriptive text
-		const userName = log.member?.user.firstName
-			? `${log.member.user.firstName} ${log.member.user.lastName || ""}`.trim()
-			: `RFID: ${log.rfidUid}`;
 
-		let desc = userName;
 		if (!isGranted && log.deniedReason) {
 			// Clean up enum strings (e.g., INSUFFICIENT_FUNDS -> Insufficient Funds)
 			const cleanReason = log.deniedReason
 				.replace(/_/g, " ")
 				.toLowerCase();
-			desc += ` • ${cleanReason.charAt(0).toUpperCase() + cleanReason.slice(1)}`;
+			` • ${cleanReason.charAt(0).toUpperCase() + cleanReason.slice(1)}`;
 		} else if (isGranted && log.deductedAmount && log.deductedAmount > 0) {
-			desc += ` • Deducted ₱${log.deductedAmount}`;
+			` • Deducted ₱${log.deductedAmount}`;
 		} else if (isGranted) {
-			desc += ` • Access Granted`;
+			` • Access Granted`;
 		}
 
 		return {
 			color,
 			title,
-			desc,
 			time: `${dateFormatter(log.entryTime)} ${formatTime(log.entryTime)}`,
 		};
 	};
@@ -82,7 +77,7 @@ export const UserEntryLogTable: React.FC<EntryLogTableProps> = ({
 					</p>
 				) : (
 					logs.map((log) => {
-						const { color, title, desc, time } =
+						const { color, title, time } =
 							getLogDisplayDetails(log);
 						return (
 							<div
@@ -104,9 +99,6 @@ export const UserEntryLogTable: React.FC<EntryLogTableProps> = ({
 									>
 										{title}
 									</h3>
-									<p className="text-xs text-muted-foreground/70 font-body-reg mt-0.5">
-										{desc}
-									</p>
 								</div>
 							</div>
 						);

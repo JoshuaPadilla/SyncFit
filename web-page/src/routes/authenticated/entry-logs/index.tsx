@@ -170,7 +170,7 @@ export default function RealTimeEntryLogs() {
 			{/* --- Table Section --- */}
 			<Card className="flex flex-col overflow-hidden shadow-none border-border">
 				{/* Toolbar */}
-				<div className="p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+				<div className="px-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 					<div className="relative w-full max-w-md flex items-center">
 						<Search
 							className="absolute left-3 text-muted-foreground"

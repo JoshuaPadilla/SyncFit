@@ -2,7 +2,9 @@ import { RfidRegistrationModal } from "@/components/custom_components/rfid_regis
 import { SpecificEntitySkeleton } from "@/components/custom_components/specific_entity_skeleton";
 import { UserEntryLogTable } from "@/components/custom_components/user_entry_log_table";
 import { dateFormatter } from "@/helpers/date_formatter";
+import { useEntryLogStore } from "@/stores/entryLogStore";
 import { useRfidStore } from "@/stores/rfidStore";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	Ban,
@@ -38,6 +40,7 @@ export const Route = createFileRoute("/authenticated/members/$member_id")({
 
 export default function UserProfileScreen() {
 	const { registerRfid } = useRfidStore();
+	const { fetchLogById } = useEntryLogStore();
 	const { user } = Route.useLoaderData();
 
 	const [modalOpen, setModalOpen] = useState(false);
@@ -46,6 +49,20 @@ export default function UserProfileScreen() {
 		await registerRfid(user!.id);
 		setModalOpen(true);
 	};
+
+	const {
+		data: result = {
+			data: [],
+			page: 1,
+			limit: 8,
+		},
+		isPending,
+		error,
+		isFetching,
+	} = useQuery({
+		queryKey: ["member_entry_log", user?.id],
+		queryFn: () => fetchLogById({ memberId: user?.member.id }),
+	});
 
 	return (
 		<>
@@ -323,9 +340,7 @@ export default function UserProfileScreen() {
 						</div>
 
 						{/* Right Column: Activity Log */}
-						<UserEntryLogTable
-							logs={user?.member.entryLogs || []}
-						/>
+						<UserEntryLogTable logs={result.data || []} />
 					</div>
 				</div>
 			</div>
