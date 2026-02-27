@@ -104,6 +104,55 @@ export class RfidService implements OnModuleInit {
     this.registrationUserId = null;
   }
 
+  async getInsights() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 1. Total Entries Today
+    const totalEntries = await this.dataSource
+      .getRepository(EntryLog)
+      .createQueryBuilder('log')
+      .where('log.status = :status', { status: EntryStatus.GRANTED })
+      .andWhere('log.entryTime >= :today', { today })
+      .getCount();
+
+    // 2. Active Members
+    const activeMembers = await this.dataSource
+      .getRepository(Member)
+      .createQueryBuilder('member')
+      .where('member.status = :status', { status: MembershipStatus.ACTIVE })
+      .getCount();
+
+    // 3. Denied Attempts Today
+    const deniedAttempts = await this.dataSource
+      .getRepository(EntryLog)
+      .createQueryBuilder('log')
+      .where('log.status = :status', { status: EntryStatus.DENIED })
+      .andWhere('log.entryTime >= :today', { today })
+      .getCount();
+
+    // 4. Peak Hour Today
+    // Note: Use HOUR(log.entryTime) for MySQL or EXTRACT(HOUR FROM log.entryTime) for PostgreSQL
+    const peakHourResult = await this.dataSource
+      .getRepository(EntryLog)
+      .createQueryBuilder('log')
+      .select('HOUR(log.entryTime)', 'hour')
+      .addSelect('COUNT(log.id)', 'count')
+      .where('log.status = :status', { status: EntryStatus.GRANTED })
+      .andWhere('log.entryTime >= :today', { today })
+      .groupBy('hour')
+      .orderBy('count', 'DESC')
+      .limit(1)
+      .getRawOne();
+
+    return {
+      totalEntriesToday: totalEntries,
+      activeMembersCount: activeMembers,
+      deniedAttemptsToday: deniedAttempts,
+      peakHour: peakHourResult ? parseInt(peakHourResult.hour) : null,
+    };
+  }
+
   private async saveRfid(uid: string, userId: string) {
     const memberRepo = this.dataSource.getRepository(Member);
 

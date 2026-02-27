@@ -6,6 +6,7 @@ import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "./context/auth_context";
 import { routeTree } from "./routeTree.gen";
+import { useEntryLogStore } from "./stores/entryLogStore";
 import { useUserStore } from "./stores/userStore";
 
 // 2. Create the router instance
@@ -17,6 +18,7 @@ const router = createRouter({
 	context: {
 		auth: undefined!, // This will be populated by the provider
 		user: undefined!,
+		entry_log: undefined!,
 		queryClient: undefined!,
 	},
 });
@@ -34,12 +36,16 @@ const queryClient = new QueryClient();
 function App() {
 	const auth = useAuth();
 	const user = useUserStore();
+	const entry_log = useEntryLogStore();
 	if (auth.isLoading) {
 		return <div style={{ color: "white" }}>Loading SyncFit...</div>;
 	}
 	// We pass the auth state into the router context here
 	return (
-		<RouterProvider router={router} context={{ auth, user, queryClient }} />
+		<RouterProvider
+			router={router}
+			context={{ auth, user, entry_log, queryClient }}
+		/>
 	);
 }
 

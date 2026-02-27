@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import type { EntryLog } from "@/types/entry_log";
+import type { EntryLogInsights } from "@/types/entry_log_insights";
 import type { Paginated } from "@/types/paginated_result";
 import type { EntryLogByUserQuery } from "@/types/query_types/entry_log_by_member_query";
 import type { EntryLogQuery } from "@/types/query_types/entry_log_query";
@@ -12,6 +13,7 @@ type StoreProps = {
 	fetchLogById: (
 		query: Partial<EntryLogByUserQuery>,
 	) => Promise<Paginated<EntryLog>>;
+	fetchInsights: () => Promise<EntryLogInsights>;
 };
 
 export const useEntryLogStore = create<StoreProps>((set) => ({
@@ -45,6 +47,12 @@ export const useEntryLogStore = create<StoreProps>((set) => ({
 			if (query.endDate) params.endDate = query.endDate.toISOString();
 
 			const res = await api.get("entry-log/by-member", { params });
+			return res.data;
+		} catch (error) {}
+	},
+	fetchInsights: async () => {
+		try {
+			const res = await api.get("entry-log/insights");
 			return res.data;
 		} catch (error) {}
 	},

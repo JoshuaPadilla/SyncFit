@@ -43,16 +43,33 @@ import type { EntryLogQuery } from "@/types/query_types/entry_log_query";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { CalendarIcon, Download, RefreshCw, Search } from "lucide-react";
+import {
+	CalendarIcon,
+	Clock,
+	Download,
+	LogIn,
+	RefreshCw,
+	Search,
+	ShieldAlert,
+	Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { useDebounce } from "use-debounce";
 
 export const Route = createFileRoute("/authenticated/entry-logs/")({
 	component: RealTimeEntryLogs,
+	loader: async ({ context }) => {
+		const insights = await context.queryClient.ensureQueryData({
+			queryKey: ["entry-log-insights"],
+			queryFn: () => context.entry_log.fetchInsights(),
+		});
+		return { insights };
+	},
 });
 
 export default function RealTimeEntryLogs() {
+	const { insights } = Route.useLoaderData();
 	const { fetchAllLogs } = useEntryLogStore();
 
 	const [searchInput, setSearchInput] = useState("");
@@ -91,6 +108,30 @@ export default function RealTimeEntryLogs() {
 		queryFn: () => fetchAllLogs(query),
 		staleTime: 1000 * 60 * 5,
 	});
+
+	const isnightsItems = [
+		{
+			label: "Total Entries Today",
+			value: insights.totalEntriesToday,
+			icon: LogIn,
+		},
+		{
+			label: "Active Members",
+			value: insights.activeMembers,
+			icon: Users,
+		},
+		{
+			label: "Denied Attempts",
+			value: insights.deniedAttempts,
+			isDanger: true,
+			icon: ShieldAlert,
+		},
+		{
+			label: "Peak Hour",
+			value: insights.peakHour,
+			icon: Clock,
+		},
+	];
 
 	const currentPage = result.page || 1;
 	const totalPages = result.totalPages || 1;
@@ -141,18 +182,20 @@ export default function RealTimeEntryLogs() {
 			</div>
 
 			{/* --- Stats Grid --- */}
+
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-				{[
-					{ label: "Total Entries Today", value: "1,248" },
-					{ label: "Active Members", value: "142" },
-					{ label: "Denied Attempts", value: "12", isDanger: true },
-					{ label: "Peak Hour", value: "6:00 PM" },
-				].map((stat, idx) => (
+				{isnightsItems.map((stat, idx) => (
 					<Card key={idx} className="border-border shadow-none">
-						<CardContent className=" flex flex-col justify-center">
-							<p className="text-muted-foreground font-body-med text-sm mb-1">
-								{stat.label}
-							</p>
+						<CardContent>
+							<div className="flex items-center justify-between mb-2">
+								<p className="text-muted-foreground font-body-med text-sm">
+									{stat.label}
+								</p>
+								{/* Icon with dynamic color based on isDanger */}
+								<stat.icon
+									className={`h-6 w-6 ${stat.isDanger ? "text-destructive" : "text-muted-foreground"}`}
+								/>
+							</div>
 							<p
 								className={`text-3xl font-header-bold ${
 									stat.isDanger
