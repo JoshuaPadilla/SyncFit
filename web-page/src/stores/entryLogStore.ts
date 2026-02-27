@@ -33,7 +33,6 @@ export const useEntryLogStore = create<StoreProps>((set) => ({
 		} catch (error) {}
 	},
 	fetchLogById: async (query) => {
-		console.log(query);
 		try {
 			const params: Record<string, any> = {};
 			if (query.search) params.search = query.search;
@@ -46,7 +45,6 @@ export const useEntryLogStore = create<StoreProps>((set) => ({
 			if (query.endDate) params.endDate = query.endDate.toISOString();
 
 			const res = await api.get("entry-log/by-member", { params });
-			console.log(res);
 			return res.data;
 		} catch (error) {}
 	},

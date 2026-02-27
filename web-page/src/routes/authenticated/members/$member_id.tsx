@@ -64,11 +64,18 @@ export default function UserProfileScreen() {
 		queryFn: () => fetchLogById({ memberId: user?.member.id }),
 	});
 
+	const handleOnCloseModal = (scannedId: string | null) => {
+		if (scannedId) {
+			user!.member.rfidUid = scannedId;
+		}
+		setModalOpen(false);
+	};
+
 	return (
 		<>
 			<RfidRegistrationModal
 				isOpen={modalOpen}
-				onConfirm={() => setModalOpen(false)}
+				onClose={handleOnCloseModal}
 				memberId={user!.id}
 			/>
 			<div className="min-h-screen bg-background text-foreground p-8 font-body-reg dark">

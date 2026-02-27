@@ -71,7 +71,6 @@ export class RfidService implements OnModuleInit {
   }
 
   async startRegistration(userId: string) {
-    // Cancel existing registration if any
     if (this.registrationTimeout) {
       clearTimeout(this.registrationTimeout);
     }
@@ -79,19 +78,30 @@ export class RfidService implements OnModuleInit {
     this.registrationMode = true;
     this.registrationUserId = userId;
 
-    // Set 30s timeout
     this.registrationTimeout = setTimeout(() => {
-      this.registrationUserId = null;
-      this.registrationTimeout = null;
-      this.client.emit(`rfid/registration/${this.registrationUserId}`, {
+      this.client.emit(`rfid/registration/${userId}`, {
         uid: null,
-        status: 'error',
+        status: 'expired',
         message: 'Registration mode expired',
       });
-      console.log('Registration mode expired');
-    }, 30000);
+
+      this.registrationUserId = null;
+      this.registrationTimeout = null;
+      this.registrationMode = false;
+
+      console.log(`Registration expired for user: ${userId}`);
+    }, 30000); // Changed to 30s as per your comment (2000 is only 2 seconds)
 
     return { status: 'Waiting for RFID tap...' };
+  }
+
+  async cancelRegistration() {
+    if (this.registrationTimeout) {
+      clearTimeout(this.registrationTimeout);
+      this.registrationTimeout = null;
+    }
+    this.registrationMode = false;
+    this.registrationUserId = null;
   }
 
   private async saveRfid(uid: string, userId: string) {
