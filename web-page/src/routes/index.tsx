@@ -11,6 +11,7 @@ import {
 	Star,
 	Wallet,
 } from "lucide-react";
+import home_log from "../../public/home_logo.png";
 
 export const Route = createFileRoute("/")({
 	component: Home,
@@ -29,12 +30,11 @@ export default function Home() {
 	return (
 		<div className="min-h-screen bg-background text-foreground font-body-reg dark">
 			<div className="flex items-center justify-between px-8 py-6 border-b border-border/10">
-				<div className="flex items-center gap-2">
-					<div className="w-6 h-6 bg-primary rounded-sm" />
-					<span className="font-header-bold text-xl tracking-tight">
-						Smart Gym
-					</span>
-				</div>
+				<img
+					src={home_log}
+					alt="SyncFit System Logo"
+					className="w-40 h-auto object-contain"
+				/>
 
 				<div className="flex items-center gap-6">
 					<button
