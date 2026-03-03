@@ -52,10 +52,7 @@ export class EntryLogService {
       qb.andWhere(
         new Brackets((orQb) => {
           orQb
-            .where('CAST(entryLog.deniedReason AS TEXT) ILIKE :search', {
-              search: `%${search}%`,
-            })
-            .orWhere('entryLog.rfidUid ILIKE :search', {
+            .where('entryLog.rfidUid ILIKE :search', {
               search: `%${search}%`,
             })
             .orWhere('user.firstName ILIKE :search', { search: `%${search}%` })
@@ -85,9 +82,11 @@ export class EntryLogService {
 
     const qb = this.entryLogRepository
       .createQueryBuilder('entryLog')
-      .innerJoinAndSelect('entryLog.member', 'member')
-      .innerJoinAndSelect('member.user', 'user')
-      .innerJoinAndSelect('member.membershipPlan', 'membershipPlan');
+      // Use innerJoin if you ONLY want logs with members,
+      // but leftJoin is safer for "Unknown Card" logs
+      .leftJoinAndSelect('entryLog.member', 'member')
+      .leftJoinAndSelect('member.user', 'user')
+      .leftJoinAndSelect('member.membershipPlan', 'membershipPlan');
 
     if (status) {
       qb.andWhere('entryLog.status = :status', { status });
@@ -100,29 +99,39 @@ export class EntryLogService {
     }
 
     if (endDate) {
-      qb.andWhere('entryLog.entryTime <= :endDate', {
-        endDate: new Date(endDate),
-      });
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      qb.andWhere('entryLog.entryTime <= :endDate', { endDate: end });
     }
 
-    if (search) {
+    if (search && search.trim() !== '') {
       qb.andWhere(
         new Brackets((orQb) => {
           orQb
-            .where('CAST(entryLog.deniedReason AS TEXT) ILIKE :search', {
-              search: `%${search}%`,
-            })
-            .orWhere('entryLog.rfidUid ILIKE :search', {
-              search: `%${search}%`,
-            })
-            .orWhere('user.firstName ILIKE :search', { search: `%${search}%` })
-            .orWhere('user.lastName ILIKE :search', { search: `%${search}%` })
-            .orWhere('user.email ILIKE :search', { search: `%${search}%` });
+            .where('entryLog.rfidUid ILIKE :search')
+            // Check for member existence or match user details
+            .orWhere(
+              new Brackets((innerOr) => {
+                innerOr
+                  .where('user.firstName ILIKE :search')
+                  .orWhere('user.lastName ILIKE :search')
+                  .orWhere('user.email ILIKE :search');
+              }),
+            )
+            // This ensures logs WITHOUT members (Unknown cards) still show up
+            .orWhere('entryLog.memberId IS NULL')
+            .orWhere(
+              "CAST(COALESCE(entryLog.deniedReason, '') AS TEXT) ILIKE :search",
+            );
         }),
+        { search: `%${search}%` },
       );
     }
 
+    // Use getManyAndCount with skip/take
+    // Try adding 'entryLog.id' to the order to ensure it's 100% deterministic
     qb.orderBy('entryLog.entryTime', 'DESC')
+      .addOrderBy('entryLog.id', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
 

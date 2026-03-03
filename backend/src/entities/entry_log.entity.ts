@@ -18,7 +18,7 @@ export class EntryLog {
   @ManyToOne(() => Member, (member) => member.entryLogs, { nullable: true })
   member: Member;
 
-  @Column()
+  @Column({ nullable: true })
   rfidUid: string;
 
   @Column({

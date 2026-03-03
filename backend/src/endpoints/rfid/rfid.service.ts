@@ -64,10 +64,10 @@ export class RfidService implements OnModuleInit {
 
     if (isAllowed) {
       this.client.emit('gym/door/command', 'unlock');
-      return { status: 'Access Granted' };
+      console.log(`Access granted for UID: ${uid}`);
+    } else {
+      this.client.emit('gym/door/command', 'denied');
     }
-
-    return { status: 'Access Denied' };
   }
 
   async startRegistration(userId: string) {
@@ -104,55 +104,6 @@ export class RfidService implements OnModuleInit {
     this.registrationUserId = null;
   }
 
-  async getInsights() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // 1. Total Entries Today
-    const totalEntries = await this.dataSource
-      .getRepository(EntryLog)
-      .createQueryBuilder('log')
-      .where('log.status = :status', { status: EntryStatus.GRANTED })
-      .andWhere('log.entryTime >= :today', { today })
-      .getCount();
-
-    // 2. Active Members
-    const activeMembers = await this.dataSource
-      .getRepository(Member)
-      .createQueryBuilder('member')
-      .where('member.status = :status', { status: MembershipStatus.ACTIVE })
-      .getCount();
-
-    // 3. Denied Attempts Today
-    const deniedAttempts = await this.dataSource
-      .getRepository(EntryLog)
-      .createQueryBuilder('log')
-      .where('log.status = :status', { status: EntryStatus.DENIED })
-      .andWhere('log.entryTime >= :today', { today })
-      .getCount();
-
-    // 4. Peak Hour Today
-    // Note: Use HOUR(log.entryTime) for MySQL or EXTRACT(HOUR FROM log.entryTime) for PostgreSQL
-    const peakHourResult = await this.dataSource
-      .getRepository(EntryLog)
-      .createQueryBuilder('log')
-      .select('HOUR(log.entryTime)', 'hour')
-      .addSelect('COUNT(log.id)', 'count')
-      .where('log.status = :status', { status: EntryStatus.GRANTED })
-      .andWhere('log.entryTime >= :today', { today })
-      .groupBy('hour')
-      .orderBy('count', 'DESC')
-      .limit(1)
-      .getRawOne();
-
-    return {
-      totalEntriesToday: totalEntries,
-      activeMembersCount: activeMembers,
-      deniedAttemptsToday: deniedAttempts,
-      peakHour: peakHourResult ? parseInt(peakHourResult.hour) : null,
-    };
-  }
-
   private async saveRfid(uid: string, userId: string) {
     const memberRepo = this.dataSource.getRepository(Member);
 
@@ -176,19 +127,49 @@ export class RfidService implements OnModuleInit {
     // Use .transaction() to get rid of all the manual connect/commit/release code
     return await this.dataSource
       .transaction(async (manager) => {
-        const member = await manager.findOne(Member, {
+        const baseMember = await manager.findOne(Member, {
           where: { rfidUid: uid },
+        });
+
+        if (!baseMember) {
+          const newLog = manager.create(EntryLog, {
+            rfidUid: uid,
+            status: EntryStatus.DENIED,
+            deniedReason: DeniedReason.UNKNOWN_CARD,
+            createdAt: new Date(),
+            entryTime: new Date(),
+          });
+          await manager.save(newLog);
+          return false;
+        }
+
+        const member = await manager.findOne(Member, {
+          where: { id: baseMember.id },
           relations: ['membershipPlan'],
         });
 
         if (!member) {
-          console.log(`No member found for UID: ${uid}`);
+          const newLog = manager.create(EntryLog, {
+            rfidUid: uid,
+            status: EntryStatus.DENIED,
+            deniedReason: DeniedReason.UNKNOWN_CARD,
+            createdAt: new Date(),
+            entryTime: new Date(),
+          });
+
+          await manager.save(newLog);
           return false;
         }
 
+        console.log('Member found for UID:', uid, 'Member ID:', member.id);
         // Prepare the log (don't save yet)
 
-        const newEntryLog = manager.create(EntryLog, { rfidUid: uid, member });
+        const newEntryLog = manager.create(EntryLog, {
+          rfidUid: uid,
+          member,
+          entryTime: new Date(),
+          createdAt: new Date(),
+        });
         const plan = member.membershipPlan;
 
         // 1. Validation Checks
@@ -258,7 +239,6 @@ export class RfidService implements OnModuleInit {
         // 4. Grant Access
         newEntryLog.status = EntryStatus.GRANTED;
         await manager.save(newEntryLog);
-
         return true; // Entire transaction commits automatically here
       })
       .catch((err) => {
