@@ -1,38 +1,65 @@
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
-import { Clock, Home, User, Wallet } from "lucide-react-native";
+import { Clock, Home, LucideIcon, User, Wallet } from "lucide-react-native";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const TabItem = ({ Icon, label, focused }: any) => {
+type TabConfig = {
+	name: string;
+	label: string;
+	Icon: LucideIcon;
+};
+
+const TABS: TabConfig[] = [
+	{ name: "user_home", label: "Home", Icon: Home },
+	{ name: "wallet", label: "Wallet", Icon: Wallet },
+	{ name: "entry_history", label: "History", Icon: Clock },
+	{ name: "profile", label: "Profile", Icon: User },
+];
+
+const CustomTabBar = ({ state, navigation }: BottomTabBarProps) => {
 	return (
-		<View style={styles.tabItemContainer}>
-			{/* The active bubble behind the icon */}
-			<View
-				style={[
-					styles.iconContainer,
-					focused && styles.activeIconContainer,
-				]}
-			>
-				<Icon
-					// High contrast: dark icon inside the bright bubble when active
-					color={focused ? "#020807" : "#889999"}
-					size={22}
-					strokeWidth={focused ? 2.5 : 2}
-				/>
-			</View>
+		<View style={styles.tabBarWrapper}>
+			<View style={styles.tabBarContainer}>
+				{state.routes.map((route: any, index: number) => {
+					const isFocused = state.index === index;
+					const { Icon, label } = TABS[index];
 
-			{/* Subtle label */}
-			<Text
-				style={[
-					styles.tabLabel,
-					{
-						color: focused ? "#00F0C5" : "#889999",
-						fontWeight: focused ? "700" : "500",
-					},
-				]}
-			>
-				{label}
-			</Text>
+					const onPress = () => {
+						const event = navigation.emit({
+							type: "tabPress",
+							target: route.key,
+							canPreventDefault: true,
+						});
+						if (!isFocused && !event.defaultPrevented) {
+							navigation.navigate(route.name);
+						}
+					};
+
+					return (
+						<TouchableOpacity
+							key={route.key}
+							onPress={onPress}
+							style={[
+								styles.tabItem,
+								isFocused
+									? styles.activeTabItem
+									: styles.inactiveTabItem,
+							]}
+							activeOpacity={0.75}
+						>
+							<Icon
+								color={isFocused ? "#020807" : "#7ab8b0"}
+								size={20}
+								strokeWidth={isFocused ? 2.5 : 2}
+							/>
+							{isFocused && (
+								<Text style={styles.activeLabel}>{label}</Text>
+							)}
+						</TouchableOpacity>
+					);
+				})}
+			</View>
 		</View>
 	);
 };
@@ -40,96 +67,69 @@ const TabItem = ({ Icon, label, focused }: any) => {
 const UserTabLayout = () => {
 	return (
 		<Tabs
+			tabBar={(props) => <CustomTabBar {...props} />}
 			screenOptions={{
 				headerShown: false,
-				tabBarShowLabel: false,
-				tabBarStyle: {
-					backgroundColor: "#020807",
-					borderTopWidth: 1, // Subtle line to separate from content
-					borderTopColor: "#111817", // Very dark, subtle border color
-					height: 80,
-					paddingTop: 10,
-					paddingBottom: 25,
-				},
-				tabBarItemStyle: {
-					justifyContent: "center",
-					alignItems: "center",
-				},
+				sceneStyle: { backgroundColor: "transparent" },
 			}}
 		>
-			<Tabs.Screen
-				name="user_home"
-				options={{
-					title: "Home",
-					tabBarIcon: ({ focused }) => (
-						<TabItem Icon={Home} label="Home" focused={focused} />
-					),
-				}}
-			/>
-
-			<Tabs.Screen
-				name="wallet"
-				options={{
-					title: "Wallet",
-					tabBarIcon: ({ focused }) => (
-						<TabItem
-							Icon={Wallet}
-							label="Wallet"
-							focused={focused}
-						/>
-					),
-				}}
-			/>
-
-			<Tabs.Screen
-				name="entry_history"
-				options={{
-					title: "History",
-					tabBarIcon: ({ focused }) => (
-						<TabItem
-							Icon={Clock}
-							label="History"
-							focused={focused}
-						/>
-					),
-				}}
-			/>
-
-			<Tabs.Screen
-				name="profile"
-				options={{
-					title: "Profile",
-					tabBarIcon: ({ focused }) => (
-						<TabItem
-							Icon={User}
-							label="Profile"
-							focused={focused}
-						/>
-					),
-				}}
-			/>
+			<Tabs.Screen name="user_home" options={{ title: "Home" }} />
+			<Tabs.Screen name="wallet" options={{ title: "Wallet" }} />
+			<Tabs.Screen name="entry_history" options={{ title: "History" }} />
+			<Tabs.Screen name="profile" options={{ title: "Profile" }} />
 		</Tabs>
 	);
 };
 
 const styles = StyleSheet.create({
-	tabItemContainer: {
+	tabBarWrapper: {
+		position: "absolute",
+		bottom: 28,
+		left: 24,
+		right: 24,
+		alignItems: "center",
+	},
+	tabBarContainer: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-around",
+		backgroundColor: "#112322",
+		borderRadius: 50,
+		paddingHorizontal: 6,
+		paddingVertical: 6,
+		gap: 6,
+		alignSelf: "stretch",
+		borderWidth: 1.5,
+		borderColor: "#00F0C540",
+		// Neon glow + depth shadow
+		shadowColor: "#00F0C5",
+		shadowOffset: { width: 0, height: 0 },
+		shadowOpacity: 0.25,
+		shadowRadius: 18,
+		elevation: 16,
+	},
+	tabItem: {
+		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "center",
-		width: 65,
-		gap: 4,
+		paddingVertical: 11,
+		borderRadius: 40,
+		gap: 8,
 	},
-	iconContainer: {
-		paddingHorizontal: 16,
-		paddingVertical: 6,
-		borderRadius: 20, // Keeps the inner bubble rounded, but the bar itself is square
-		backgroundColor: "transparent",
+	inactiveTabItem: {
+		// Minimal padding for icon-only tabs
+		paddingHorizontal: 12,
 	},
-	activeIconContainer: {
+	activeTabItem: {
+		// Flexible padding that expands with content
+		paddingHorizontal: 18,
 		backgroundColor: "#00F0C5",
 	},
-	tabLabel: {
-		fontSize: 10,
+	activeLabel: {
+		color: "#020807",
+		fontSize: 14,
+		fontWeight: "700",
+		letterSpacing: 0.2,
 	},
 });
 

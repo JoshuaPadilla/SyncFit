@@ -5,12 +5,14 @@ import { EntryLogByUserQuery } from "@/types/query_types/entry_log_by_member_que
 import { create } from "zustand";
 
 type StoreProps = {
+	entryLogsTotal: number | 0;
 	fetchLogs: (
 		query: Partial<EntryLogByUserQuery>,
 	) => Promise<Paginated<EntryLog>>;
 };
 
 export const useEntryLogStore = create<StoreProps>((set) => ({
+	entryLogsTotal: 0,
 	fetchLogs: async (query) => {
 		try {
 			console.log(query);
@@ -25,7 +27,7 @@ export const useEntryLogStore = create<StoreProps>((set) => ({
 			if (query.endDate) params.endDate = query.endDate.toISOString();
 
 			const res = await api.get("entry-log/by-member", { params });
-
+			set({ entryLogsTotal: res.data.total });
 			return res.data;
 		} catch (error) {}
 	},

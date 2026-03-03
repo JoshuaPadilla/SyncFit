@@ -1,6 +1,5 @@
 import { useEntryLogStore } from "@/_stores/entryLogStore";
 import { EmptyState } from "@/components/empty_state";
-import { FloatingBlob } from "@/components/floating_blob";
 import { useAuth } from "@/context/authContext";
 import { EntryStatus } from "@/enums/entry_status.enum";
 import { formatCurrency } from "@/helpers/currency_formatter";
@@ -9,15 +8,12 @@ import { EntryLogByUserQuery } from "@/types/query_types/entry_log_by_member_que
 import DateTimePicker, {
 	DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { LinearGradient } from "expo-linear-gradient";
-import { StatusBar } from "expo-status-bar";
 import { ClockAlert } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
 	ActivityIndicator,
 	FlatList,
 	Keyboard,
-	KeyboardAvoidingView,
 	Modal,
 	Platform,
 	ScrollView,
@@ -243,295 +239,254 @@ const EntryHistory = () => {
 	};
 
 	return (
-		<View className="flex-1 bg-[#020807]">
-			<StatusBar style="light" />
+		<SafeAreaView className="flex-1 pt-8">
+			<Text className="font-header-bold text-2xl mb-6 px-5 text-white">
+				History
+			</Text>
 
-			<LinearGradient
-				colors={["#0d2120", "#020807"]}
-				className="absolute w-full h-full"
-			/>
-
-			<FloatingBlob
-				className="absolute top-[200] right-[-70] w-80 h-80 bg-neon/10 rounded-full blur-[80px]"
-				duration={5000}
-				offset={30}
-			/>
-			<FloatingBlob
-				className="absolute top-[-80] right-[-20] w-40 h-40 bg-neon/10 rounded-full blur-[80px]"
-				duration={3500}
-				offset={15}
-			/>
-			<FloatingBlob
-				className="absolute bottom-[5%] left-[-50] w-64 h-64 bg-neon/5 rounded-full blur-[100px]"
-				duration={6000}
-				offset={40}
-			/>
-
-			<KeyboardAvoidingView
-				style={{ flex: 1 }}
-				behavior={Platform.OS === "ios" ? "padding" : "height"}
-			>
-				<SafeAreaView className="flex-1 pt-8">
-					<Text className="font-header-bold text-2xl mb-6 px-5 text-white">
-						History
+			<View className="flex-row gap-4 px-5 mb-6">
+				<View className="flex-1 bg-white/5 p-4 rounded-2xl border border-white/10">
+					<Text className="text-textDim font-body-semibold text-[10px] tracking-[1px] mb-2 uppercase">
+						Total Entries
 					</Text>
+					<Text className="text-white font-header-bold text-3xl">
+						{totalEntries}
+					</Text>
+				</View>
 
-					<View className="flex-row gap-4 px-5 mb-6">
-						<View className="flex-1 bg-white/5 p-4 rounded-2xl border border-white/10">
-							<Text className="text-textDim font-body-semibold text-[10px] tracking-[1px] mb-2 uppercase">
-								Total Entries
+				<View className="flex-1 bg-white/5 p-4 rounded-2xl border border-white/10">
+					<Text className="text-textDim font-body-semibold text-[10px] tracking-[1px] mb-2 uppercase">
+						Last Entry
+					</Text>
+					{lastEntryDate ? (
+						<>
+							<Text className="text-white font-header-bold text-lg leading-tight">
+								{new Date(lastEntryDate).toLocaleDateString(
+									"en-PH",
+									{
+										month: "short",
+										day: "numeric",
+									},
+								)}
 							</Text>
-							<Text className="text-white font-header-bold text-3xl">
-								{totalEntries}
+							<Text className="text-neon font-body-reg text-xs">
+								{new Date(lastEntryDate).toLocaleTimeString(
+									"en-PH",
+									{
+										hour: "2-digit",
+										minute: "2-digit",
+									},
+								)}
 							</Text>
-						</View>
+						</>
+					) : (
+						<Text className="text-textDim font-body-reg text-sm">
+							No data
+						</Text>
+					)}
+				</View>
+			</View>
 
-						<View className="flex-1 bg-white/5 p-4 rounded-2xl border border-white/10">
-							<Text className="text-textDim font-body-semibold text-[10px] tracking-[1px] mb-2 uppercase">
-								Last Entry
-							</Text>
-							{lastEntryDate ? (
-								<>
-									<Text className="text-white font-header-bold text-lg leading-tight">
-										{new Date(
-											lastEntryDate,
-										).toLocaleDateString("en-PH", {
-											month: "short",
-											day: "numeric",
-										})}
-									</Text>
-									<Text className="text-neon font-body-reg text-xs">
-										{new Date(
-											lastEntryDate,
-										).toLocaleTimeString("en-PH", {
-											hour: "2-digit",
-											minute: "2-digit",
-										})}
-									</Text>
-								</>
-							) : (
-								<Text className="text-textDim font-body-reg text-sm">
-									No data
-								</Text>
-							)}
-						</View>
-					</View>
+			<View className="mb-4">
+				<ScrollView
+					horizontal
+					showsHorizontalScrollIndicator={false}
+					contentContainerStyle={{
+						paddingHorizontal: 20,
+					}}
+				>
+					{renderFilterPill("All", "ALL")}
+					{renderFilterPill("Granted", EntryStatus.GRANTED)}
+					{renderFilterPill("Denied", EntryStatus.DENIED)}
 
-					<View className="mb-4">
-						<ScrollView
-							horizontal
-							showsHorizontalScrollIndicator={false}
-							contentContainerStyle={{
-								paddingHorizontal: 20,
-							}}
+					<TouchableOpacity
+						className={`px-5 py-2 rounded-full border flex-row items-center ${
+							hasDateFilter
+								? "bg-neon/20 border-neon"
+								: "bg-white/5 border-white/10"
+						}`}
+						onPress={openDateModal}
+					>
+						<Text
+							className={`font-body-semibold text-sm ${
+								hasDateFilter ? "text-neon" : "text-textDim"
+							}`}
 						>
-							{renderFilterPill("All", "ALL")}
-							{renderFilterPill("Granted", EntryStatus.GRANTED)}
-							{renderFilterPill("Denied", EntryStatus.DENIED)}
-
+							{dateLabel}
+						</Text>
+						{hasDateFilter && (
 							<TouchableOpacity
-								className={`px-5 py-2 rounded-full border flex-row items-center ${
-									hasDateFilter
-										? "bg-neon/20 border-neon"
-										: "bg-white/5 border-white/10"
-								}`}
-								onPress={openDateModal}
+								onPress={clearDateFilter}
+								className="ml-2"
+								hitSlop={{
+									top: 8,
+									bottom: 8,
+									left: 8,
+									right: 8,
+								}}
 							>
-								<Text
-									className={`font-body-semibold text-sm ${
-										hasDateFilter
-											? "text-neon"
-											: "text-textDim"
-									}`}
-								>
-									{dateLabel}
+								<Text className="text-neon font-body-bold text-xs">
+									✕
 								</Text>
-								{hasDateFilter && (
+							</TouchableOpacity>
+						)}
+					</TouchableOpacity>
+				</ScrollView>
+			</View>
+
+			{isLoading ? (
+				<View className="flex-1 justify-center items-center">
+					<ActivityIndicator size="large" color="#00F0C5" />
+				</View>
+			) : (
+				<FlatList
+					data={logs}
+					keyExtractor={(item) => item.id}
+					renderItem={renderLogItem}
+					showsVerticalScrollIndicator={false}
+					onEndReached={handleLoadMore}
+					onEndReachedThreshold={0.3}
+					contentContainerStyle={{
+						paddingBottom: 40,
+						flexGrow: 1,
+						justifyContent:
+							logs.length === 0 ? "center" : "flex-start",
+					}}
+					ListFooterComponent={
+						isFetchingMore ? (
+							<ActivityIndicator
+								size="small"
+								color="#00F0C5"
+								className="mt-2"
+							/>
+						) : null
+					}
+					ListEmptyComponent={
+						<View className="px-5">
+							<EmptyState
+								title="No Entries Found"
+								message={
+									filters.status === "ALL" && !hasDateFilter
+										? "You don't have any entry logs recorded yet."
+										: "No logs match the selected filters."
+								}
+								icon={<ClockAlert color={"#00F0C5"} />}
+							/>
+						</View>
+					}
+				/>
+			)}
+
+			{/* Date Range Modal */}
+			<Modal
+				visible={showDateModal}
+				transparent
+				animationType="fade"
+				onRequestClose={() => {
+					setShowDateModal(false);
+					setPickingDate(null);
+				}}
+			>
+				<TouchableWithoutFeedback
+					onPress={() => {
+						setShowDateModal(false);
+						setPickingDate(null);
+					}}
+				>
+					<View className="flex-1 bg-black/60 justify-end">
+						<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+							<View className="bg-[#0d1f1d] rounded-t-3xl p-6 border-t border-white/10">
+								<View className="flex-row justify-between items-center mb-6">
+									<Text className="text-white font-header-bold text-lg">
+										Filter by Date
+									</Text>
+									{/* If iOS, show a done button to manually dismiss the picker if needed */}
+									{Platform.OS === "ios" && pickingDate && (
+										<TouchableOpacity
+											onPress={() => setPickingDate(null)}
+										>
+											<Text className="text-neon font-body-bold">
+												Done
+											</Text>
+										</TouchableOpacity>
+									)}
+								</View>
+
+								<Text className="text-textDim font-body-semibold text-xs mb-2 uppercase tracking-widest">
+									Start Date
+								</Text>
+								<TouchableOpacity
+									onPress={() => setPickingDate("start")}
+									className={`bg-white/5 border rounded-xl px-4 py-3 mb-4 ${pickingDate === "start" ? "border-neon" : "border-white/10"}`}
+								>
+									<Text
+										className={`font-body-reg ${tempStartDate ? "text-white" : "text-[#4a6361]"}`}
+									>
+										{tempStartDate
+											? tempStartDate.toLocaleDateString(
+													"en-PH",
+												)
+											: "Select Start Date"}
+									</Text>
+								</TouchableOpacity>
+
+								<Text className="text-textDim font-body-semibold text-xs mb-2 uppercase tracking-widest">
+									End Date
+								</Text>
+								<TouchableOpacity
+									onPress={() => setPickingDate("end")}
+									className={`bg-white/5 border rounded-xl px-4 py-3 mb-6 ${pickingDate === "end" ? "border-neon" : "border-white/10"}`}
+								>
+									<Text
+										className={`font-body-reg ${tempEndDate ? "text-white" : "text-[#4a6361]"}`}
+									>
+										{tempEndDate
+											? tempEndDate.toLocaleDateString(
+													"en-PH",
+												)
+											: "Select End Date"}
+									</Text>
+								</TouchableOpacity>
+
+								{/* Conditionally Render DateTimePicker */}
+								{pickingDate && (
+									<DateTimePicker
+										value={
+											(pickingDate === "start"
+												? tempStartDate
+												: tempEndDate) || new Date()
+										}
+										mode="date"
+										display="default"
+										onChange={handleDateChange}
+										maximumDate={new Date()} // Prevents selecting future dates
+									/>
+								)}
+
+								<View className="flex-row gap-3 mt-2">
 									<TouchableOpacity
 										onPress={clearDateFilter}
-										className="ml-2"
-										hitSlop={{
-											top: 8,
-											bottom: 8,
-											left: 8,
-											right: 8,
-										}}
+										className="flex-1 py-3 rounded-xl border border-white/20 items-center"
 									>
-										<Text className="text-neon font-body-bold text-xs">
-											✕
+										<Text className="text-textDim font-body-semibold text-sm">
+											Clear
 										</Text>
 									</TouchableOpacity>
-								)}
-							</TouchableOpacity>
-						</ScrollView>
-					</View>
-
-					{isLoading ? (
-						<View className="flex-1 justify-center items-center">
-							<ActivityIndicator size="large" color="#00F0C5" />
-						</View>
-					) : (
-						<FlatList
-							data={logs}
-							keyExtractor={(item) => item.id}
-							renderItem={renderLogItem}
-							showsVerticalScrollIndicator={false}
-							onEndReached={handleLoadMore}
-							onEndReachedThreshold={0.3}
-							contentContainerStyle={{
-								paddingBottom: 40,
-								flexGrow: 1,
-								justifyContent:
-									logs.length === 0 ? "center" : "flex-start",
-							}}
-							ListFooterComponent={
-								isFetchingMore ? (
-									<ActivityIndicator
-										size="small"
-										color="#00F0C5"
-										className="mt-2"
-									/>
-								) : null
-							}
-							ListEmptyComponent={
-								<View className="px-5">
-									<EmptyState
-										title="No Entries Found"
-										message={
-											filters.status === "ALL" &&
-											!hasDateFilter
-												? "You don't have any entry logs recorded yet."
-												: "No logs match the selected filters."
-										}
-										icon={<ClockAlert color={"#00F0C5"} />}
-									/>
+									<TouchableOpacity
+										onPress={applyDateFilter}
+										className="flex-1 py-3 rounded-xl bg-neon items-center"
+									>
+										<Text className="text-[#020807] font-body-bold text-sm">
+											Apply
+										</Text>
+									</TouchableOpacity>
 								</View>
-							}
-						/>
-					)}
-
-					{/* Date Range Modal */}
-					<Modal
-						visible={showDateModal}
-						transparent
-						animationType="fade"
-						onRequestClose={() => {
-							setShowDateModal(false);
-							setPickingDate(null);
-						}}
-					>
-						<TouchableWithoutFeedback
-							onPress={() => {
-								setShowDateModal(false);
-								setPickingDate(null);
-							}}
-						>
-							<View className="flex-1 bg-black/60 justify-end">
-								<TouchableWithoutFeedback
-									onPress={Keyboard.dismiss}
-								>
-									<View className="bg-[#0d1f1d] rounded-t-3xl p-6 border-t border-white/10">
-										<View className="flex-row justify-between items-center mb-6">
-											<Text className="text-white font-header-bold text-lg">
-												Filter by Date
-											</Text>
-											{/* If iOS, show a done button to manually dismiss the picker if needed */}
-											{Platform.OS === "ios" &&
-												pickingDate && (
-													<TouchableOpacity
-														onPress={() =>
-															setPickingDate(null)
-														}
-													>
-														<Text className="text-neon font-body-bold">
-															Done
-														</Text>
-													</TouchableOpacity>
-												)}
-										</View>
-
-										<Text className="text-textDim font-body-semibold text-xs mb-2 uppercase tracking-widest">
-											Start Date
-										</Text>
-										<TouchableOpacity
-											onPress={() =>
-												setPickingDate("start")
-											}
-											className={`bg-white/5 border rounded-xl px-4 py-3 mb-4 ${pickingDate === "start" ? "border-neon" : "border-white/10"}`}
-										>
-											<Text
-												className={`font-body-reg ${tempStartDate ? "text-white" : "text-[#4a6361]"}`}
-											>
-												{tempStartDate
-													? tempStartDate.toLocaleDateString(
-															"en-PH",
-														)
-													: "Select Start Date"}
-											</Text>
-										</TouchableOpacity>
-
-										<Text className="text-textDim font-body-semibold text-xs mb-2 uppercase tracking-widest">
-											End Date
-										</Text>
-										<TouchableOpacity
-											onPress={() =>
-												setPickingDate("end")
-											}
-											className={`bg-white/5 border rounded-xl px-4 py-3 mb-6 ${pickingDate === "end" ? "border-neon" : "border-white/10"}`}
-										>
-											<Text
-												className={`font-body-reg ${tempEndDate ? "text-white" : "text-[#4a6361]"}`}
-											>
-												{tempEndDate
-													? tempEndDate.toLocaleDateString(
-															"en-PH",
-														)
-													: "Select End Date"}
-											</Text>
-										</TouchableOpacity>
-
-										{/* Conditionally Render DateTimePicker */}
-										{pickingDate && (
-											<DateTimePicker
-												value={
-													(pickingDate === "start"
-														? tempStartDate
-														: tempEndDate) ||
-													new Date()
-												}
-												mode="date"
-												display="default"
-												onChange={handleDateChange}
-												maximumDate={new Date()} // Prevents selecting future dates
-											/>
-										)}
-
-										<View className="flex-row gap-3 mt-2">
-											<TouchableOpacity
-												onPress={clearDateFilter}
-												className="flex-1 py-3 rounded-xl border border-white/20 items-center"
-											>
-												<Text className="text-textDim font-body-semibold text-sm">
-													Clear
-												</Text>
-											</TouchableOpacity>
-											<TouchableOpacity
-												onPress={applyDateFilter}
-												className="flex-1 py-3 rounded-xl bg-neon items-center"
-											>
-												<Text className="text-[#020807] font-body-bold text-sm">
-													Apply
-												</Text>
-											</TouchableOpacity>
-										</View>
-									</View>
-								</TouchableWithoutFeedback>
 							</View>
 						</TouchableWithoutFeedback>
-					</Modal>
-				</SafeAreaView>
-			</KeyboardAvoidingView>
-		</View>
+					</View>
+				</TouchableWithoutFeedback>
+			</Modal>
+		</SafeAreaView>
 	);
 };
 

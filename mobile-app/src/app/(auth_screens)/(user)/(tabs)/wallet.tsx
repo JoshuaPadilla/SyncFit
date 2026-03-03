@@ -1,22 +1,13 @@
 import { useUserStore } from "@/_stores/userStore";
 import { EmptyState } from "@/components/empty_state";
-import { FloatingBlob } from "@/components/floating_blob";
 import { useAuth } from "@/context/authContext";
 import { formatCurrency } from "@/helpers/currency_formatter";
 import { Transaction } from "@/types/transaction";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { BanknoteX } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import {
-	FlatList,
-	Keyboard,
-	Text,
-	TouchableOpacity,
-	TouchableWithoutFeedback,
-	View,
-} from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const transactions = [
@@ -58,101 +49,71 @@ const UserWallet = () => {
 	};
 
 	return (
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-			<View className="flex-1 bg-darkBgBot">
-				<StatusBar style="light" />
+		<SafeAreaView className="flex-1 px-5 pt-8">
+			<Text className="text-text font-header-bold text-2xl mb-6">
+				Wallet
+			</Text>
 
-				<LinearGradient
-					colors={["#0d2120", "#020807"]}
-					className="absolute w-full h-full"
-				/>
+			<LinearGradient
+				colors={["rgba(0,240,197,0.15)", "rgba(0,240,197,0.02)"]}
+				className="p-6 rounded-3xl border border-neon/20 mb-6 overflow-hidden "
+			>
+				<View className="flex-row  justify-between items-end">
+					{/* Left Side: Label and Amount */}
+					<View className="flex-1">
+						<Text className="text-textDim font-body-semibold text-[10px] tracking-[2px] mb-2 uppercase">
+							Current Balance
+						</Text>
 
-				<FloatingBlob
-					className="absolute top-[200] right-[-70] w-80 h-80 bg-neon/10 rounded-full blur-[80px]"
-					duration={5000}
-					offset={30}
-				/>
-				<FloatingBlob
-					className="absolute top-[-80] right-[-20] w-40 h-40 bg-neon/10 rounded-full blur-[80px]"
-					duration={3500}
-					offset={15}
-				/>
-				<FloatingBlob
-					className="absolute bottom-[5%] left-[-50] w-64 h-64 bg-neon/5 rounded-full blur-[100px]"
-					duration={6000}
-					offset={40}
-				/>
-
-				<SafeAreaView className="flex-1 px-5 pt-8">
-					<Text className="text-text font-header-bold text-2xl mb-6">
-						Wallet
-					</Text>
-
-					<LinearGradient
-						colors={[
-							"rgba(0,240,197,0.15)",
-							"rgba(0,240,197,0.02)",
-						]}
-						className="p-6 rounded-3xl border border-neon/20 mb-6 overflow-hidden "
-					>
-						<View className="flex-row  justify-between items-end">
-							{/* Left Side: Label and Amount */}
-							<View className="flex-1">
-								<Text className="text-textDim font-body-semibold text-[10px] tracking-[2px] mb-2 uppercase">
-									Current Balance
-								</Text>
-
-								<View className="flex-row items-baseline">
-									<Text className="text-white font-header-bold text-4xl">
-										{formatCurrency(user?.member?.balance)}
-									</Text>
-									<Text className="text-neon font-header-bold text-sm ml-1.5">
-										PHP
-									</Text>
-								</View>
-							</View>
-
-							{/* Right Side: Action Button */}
-							<TouchableOpacity
-								className="bg-neon px-4 py-2 rounded-2xl shadow-lg shadow-neon/20"
-								activeOpacity={0.8}
-								onPress={handleTopup}
-							>
-								<Text className="text-black font-body-bold text-sm">
-									Top Up
-								</Text>
-							</TouchableOpacity>
+						<View className="flex-row items-baseline">
+							<Text className="text-white font-header-bold text-4xl">
+								{formatCurrency(user?.member?.balance)}
+							</Text>
+							<Text className="text-neon font-header-bold text-sm ml-1.5">
+								PHP
+							</Text>
 						</View>
-					</LinearGradient>
+					</View>
 
-					<Text className="text-text font-header-bold text-xl mb-4">
-						Recent Transactions
-					</Text>
+					{/* Right Side: Action Button */}
+					<TouchableOpacity
+						className="bg-neon px-4 py-2 rounded-2xl shadow-lg shadow-neon/20"
+						activeOpacity={0.8}
+						onPress={handleTopup}
+					>
+						<Text className="text-black font-body-bold text-sm">
+							Top Up
+						</Text>
+					</TouchableOpacity>
+				</View>
+			</LinearGradient>
 
-					<FlatList
-						data={recentTransactions}
-						keyExtractor={(item) => item.id}
-						renderItem={renderTransaction}
-						showsVerticalScrollIndicator={false}
-						contentContainerStyle={{
-							paddingBottom: 40,
-							flexGrow: 1,
-							justifyContent:
-								recentTransactions.length === 0
-									? "center"
-									: "flex-start", // Centers only if empty
-						}}
-						ListEmptyComponent={() => (
-							<EmptyState
-								title="No Transactions"
-								message="You haven't made any transactions yet."
-								icon={<BanknoteX color="#FFFFFF" size={24} />}
-							/>
-						)}
+			<Text className="text-text font-header-bold text-xl mb-4">
+				Recent Transactions
+			</Text>
+
+			<FlatList
+				data={recentTransactions}
+				keyExtractor={(item) => item.id}
+				renderItem={renderTransaction}
+				showsVerticalScrollIndicator={false}
+				contentContainerStyle={{
+					paddingBottom: 40,
+					flexGrow: 1,
+					justifyContent:
+						recentTransactions.length === 0
+							? "center"
+							: "flex-start", // Centers only if empty
+				}}
+				ListEmptyComponent={() => (
+					<EmptyState
+						title="No Transactions"
+						message="You haven't made any transactions yet."
+						icon={<BanknoteX color="#FFFFFF" size={24} />}
 					/>
-				</SafeAreaView>
-			</View>
-		</TouchableWithoutFeedback>
+				)}
+			/>
+		</SafeAreaView>
 	);
 };
 

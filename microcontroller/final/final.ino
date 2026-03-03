@@ -20,6 +20,8 @@ const int buzzerPin = 14;
 const int servoPin = 18;
 const int red = 2;
 const int green = 47;
+const int mqttIndicator = 4;
+const int wifiIndicator = 5;
 bool shouldBlinkGreen = false;
 bool shouldBlinkRed = false;
 
@@ -52,6 +54,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 
 void setup_wifi() {
+  digitalWrite(wifiIndicator, LOW);
   delay(10);
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -60,11 +63,14 @@ void setup_wifi() {
     delay(500);
     Serial.print(".");
   }
+  digitalWrite(wifiIndicator, HIGH);
   Serial.println("\nWiFi connected. IP address: ");
   Serial.println(WiFi.localIP());
 }
 
 void reconnect() {
+      digitalWrite(mqttIndicator, LOW);
+
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
@@ -74,6 +80,8 @@ void reconnect() {
     if (client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
       client.subscribe("gym/door/command");
       Serial.println("connected");
+      digitalWrite(mqttIndicator, HIGH);
+
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -85,6 +93,8 @@ void reconnect() {
 
 void setup() {
   Serial.begin(115200);
+  pinMode(wifiIndicator, OUTPUT);
+  pinMode(mqttIndicator, OUTPUT);
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
@@ -166,17 +176,3 @@ void blinkLed(int pin, int duration) {
   digitalWrite(pin, LOW);
   delay(duration);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
