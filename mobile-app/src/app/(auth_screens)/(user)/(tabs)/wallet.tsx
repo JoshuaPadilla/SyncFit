@@ -97,8 +97,9 @@ const UserWallet = () => {
 				keyExtractor={(item) => item.id}
 				renderItem={renderTransaction}
 				showsVerticalScrollIndicator={false}
+				removeClippedSubviews={true}
 				contentContainerStyle={{
-					paddingBottom: 40,
+					paddingBottom: 200,
 					flexGrow: 1,
 					justifyContent:
 						recentTransactions.length === 0

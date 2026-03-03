@@ -194,7 +194,7 @@ const EntryHistory = () => {
 		);
 	};
 
-	const renderLogItem = ({ item }: { item: EntryLog }) => {
+	const renderLogItem = useCallback(({ item }: { item: EntryLog }) => {
 		const isGranted = item.status === EntryStatus.GRANTED;
 
 		return (
@@ -236,10 +236,10 @@ const EntryHistory = () => {
 				</View>
 			</View>
 		);
-	};
+	}, []);
 
-	return (
-		<SafeAreaView className="flex-1 pt-8">
+	const ListHeader = () => (
+		<>
 			<Text className="font-header-bold text-2xl mb-6 px-5 text-white">
 				History
 			</Text>
@@ -263,19 +263,13 @@ const EntryHistory = () => {
 							<Text className="text-white font-header-bold text-lg leading-tight">
 								{new Date(lastEntryDate).toLocaleDateString(
 									"en-PH",
-									{
-										month: "short",
-										day: "numeric",
-									},
+									{ month: "short", day: "numeric" },
 								)}
 							</Text>
 							<Text className="text-neon font-body-reg text-xs">
 								{new Date(lastEntryDate).toLocaleTimeString(
 									"en-PH",
-									{
-										hour: "2-digit",
-										minute: "2-digit",
-									},
+									{ hour: "2-digit", minute: "2-digit" },
 								)}
 							</Text>
 						</>
@@ -290,10 +284,9 @@ const EntryHistory = () => {
 			<View className="mb-4">
 				<ScrollView
 					horizontal
+					nestedScrollEnabled={true}
 					showsHorizontalScrollIndicator={false}
-					contentContainerStyle={{
-						paddingHorizontal: 20,
-					}}
+					contentContainerStyle={{ paddingHorizontal: 20 }}
 				>
 					{renderFilterPill("All", "ALL")}
 					{renderFilterPill("Granted", EntryStatus.GRANTED)}
@@ -334,34 +327,40 @@ const EntryHistory = () => {
 				</ScrollView>
 			</View>
 
-			{isLoading ? (
-				<View className="flex-1 justify-center items-center">
+			{isLoading && (
+				<View className="py-16 items-center">
 					<ActivityIndicator size="large" color="#00F0C5" />
 				</View>
-			) : (
-				<FlatList
-					data={logs}
-					keyExtractor={(item) => item.id}
-					renderItem={renderLogItem}
-					showsVerticalScrollIndicator={false}
-					onEndReached={handleLoadMore}
-					onEndReachedThreshold={0.3}
-					contentContainerStyle={{
-						paddingBottom: 40,
-						flexGrow: 1,
-						justifyContent:
-							logs.length === 0 ? "center" : "flex-start",
-					}}
-					ListFooterComponent={
-						isFetchingMore ? (
-							<ActivityIndicator
-								size="small"
-								color="#00F0C5"
-								className="mt-2"
-							/>
-						) : null
-					}
-					ListEmptyComponent={
+			)}
+		</>
+	);
+
+	return (
+		<SafeAreaView className="flex-1">
+			<FlatList
+				data={isLoading ? [] : logs}
+				keyExtractor={(item) => item.id}
+				renderItem={renderLogItem}
+				ListHeaderComponent={ListHeader}
+				showsVerticalScrollIndicator={false}
+				onEndReached={handleLoadMore}
+				onEndReachedThreshold={0.3}
+				contentContainerStyle={{
+					paddingTop: 32,
+					paddingBottom: 100,
+					flexGrow: 1,
+				}}
+				ListFooterComponent={
+					isFetchingMore ? (
+						<ActivityIndicator
+							size="small"
+							color="#00F0C5"
+							style={{ marginTop: 8 }}
+						/>
+					) : null
+				}
+				ListEmptyComponent={
+					isLoading ? null : (
 						<View className="px-5">
 							<EmptyState
 								title="No Entries Found"
@@ -373,9 +372,9 @@ const EntryHistory = () => {
 								icon={<ClockAlert color={"#00F0C5"} />}
 							/>
 						</View>
-					}
-				/>
-			)}
+					)
+				}
+			/>
 
 			{/* Date Range Modal */}
 			<Modal

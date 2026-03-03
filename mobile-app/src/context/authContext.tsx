@@ -65,8 +65,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const signOut = async () => {
 		const { error } = await supabase.auth.signOut();
 		if (error) console.error("Error signing out:", error.message);
-
-		router.replace("/(onboarding)/login");
 	};
 
 	// 1. INITIALIZATION: Check Session AND Profile before unblocking UI
@@ -96,8 +94,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			data: { subscription },
 		} = supabase.auth.onAuthStateChange(async (_event, session) => {
 			setSession(session);
-			if (session) await refreshUser();
-			else setUser(null);
+			if (session) {
+				setIsLoading(true);
+				await refreshUser();
+				setIsLoading(false);
+			} else {
+				setUser(null);
+			}
 		});
 
 		return () => subscription.unsubscribe();

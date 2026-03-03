@@ -19,9 +19,16 @@ import {
 	Flame,
 	Plus,
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const renderLogIcon = (status: string, deducted: number | null) => {
+	if (status === "DENIED") return <Activity color="#ef4444" size={20} />;
+	if (deducted && deducted > 0)
+		return <CreditCard color="#00F0C5" size={20} />;
+	return <Calendar color="#889999" size={20} />;
+};
 
 const UserHome = () => {
 	const { user } = useAuth();
@@ -30,18 +37,10 @@ const UserHome = () => {
 	const [insights, setInsights] = useState<UserDashboardInsights | null>(
 		null,
 	);
-
 	const [recentEntries, setRecentEntries] = useState<EntryLog[]>([]);
 
 	const isPrepaid =
 		user?.member?.membershipPlan.type === MembershipType.PREPAID;
-
-	const renderLogIcon = (status: string, deducted: number | null) => {
-		if (status === "DENIED") return <Activity color="#ef4444" size={20} />;
-		if (deducted && deducted > 0)
-			return <CreditCard color="#00F0C5" size={20} />;
-		return <Calendar color="#889999" size={20} />;
-	};
 
 	useEffect(() => {
 		const init = async () => {
@@ -53,11 +52,66 @@ const UserHome = () => {
 			if (logs) setRecentEntries(logs.data);
 			if (result) setInsights(result);
 		};
-
 		init();
 	}, []);
+
+	const renderLogItem = useCallback(
+		({ item: log }: { item: EntryLog }) => (
+			<View className="bg-white/5 flex-row items-center p-4 rounded-2xl border border-white/5 mb-3">
+				<View className="w-12 h-12 bg-white/5 rounded-full items-center justify-center mr-4">
+					{renderLogIcon(log.status, log.deductedAmount)}
+				</View>
+
+				<View className="flex-1">
+					<Text
+						className={`font-header-semibold text-base ${
+							log.status === EntryStatus.GRANTED
+								? "text-text"
+								: "text-red-400"
+						}`}
+					>
+						{log.status === EntryStatus.GRANTED
+							? "Entry Granted"
+							: "Entry Denied"}
+					</Text>
+					<Text className="text-textDim font-body-reg text-xs mt-1">
+						{log.status === EntryStatus.DENIED
+							? `Reason: ${
+									log.deniedReason?.replace("_", " ") ||
+									"Unauthorized"
+								}`
+							: `${new Date(log.entryTime).toLocaleDateString()} at ${formatTime(log.entryTime)}`}
+					</Text>
+				</View>
+
+				<View className="items-end">
+					<Text
+						className={`${
+							!log.deductedAmount || log.deductedAmount <= 0
+								? "text-textDim"
+								: "text-neon"
+						} font-body-semibold text-sm`}
+					>
+						{!log.deductedAmount || log.deductedAmount <= 0
+							? log.status === EntryStatus.GRANTED
+								? "Included"
+								: "---"
+							: `-${log.deductedAmount} PHP`}
+					</Text>
+					{log.status === EntryStatus.DENIED && (
+						<Text className="text-[10px] text-white/30 mt-1">
+							{formatTime(log.entryTime)}
+						</Text>
+					)}
+				</View>
+			</View>
+		),
+		[],
+	);
+
 	return (
 		<SafeAreaView className="flex-1 px-5 pt-8">
+			{/* Fixed header */}
 			<View className="flex-row justify-between items-center mb-6">
 				<View>
 					<Text className="text-textDim font-body-med text-sm">
@@ -72,7 +126,6 @@ const UserHome = () => {
 				</TouchableOpacity>
 			</View>
 
-			{/* card */}
 			{isPrepaid ? (
 				<LinearGradient
 					colors={["rgba(0,240,197,0.15)", "rgba(0,240,197,0.02)"]}
@@ -83,20 +136,19 @@ const UserHome = () => {
 					</Text>
 					<View className="flex-row items-end mb-6">
 						<Text className="text-text font-header-bold text-4xl">
-							{formatCurrency(user.member?.balance)}
+							{formatCurrency(user!.member?.balance)}
 						</Text>
 						<Text className="text-neon font-header-bold text-lg ml-2 mb-1">
 							PHP
 						</Text>
 					</View>
-
 					<View className="flex-row justify-between items-center">
 						<View>
 							<Text className="text-textDim font-body-reg text-xs">
 								Status
 							</Text>
 							<Text className="text-text font-body-med text-xs mt-1">
-								{user.member?.status}
+								{user!.member?.status}
 							</Text>
 						</View>
 						<TouchableOpacity className="bg-neon flex-row items-center px-4 py-2.5 rounded-xl">
@@ -123,7 +175,6 @@ const UserHome = () => {
 							Days Left
 						</Text>
 					</View>
-
 					<View className="flex-row justify-between items-center">
 						<View>
 							<Text className="text-textDim font-body-reg text-xs">
@@ -143,13 +194,11 @@ const UserHome = () => {
 				</LinearGradient>
 			)}
 
-			{/* Insights */}
 			<View className="flex-row justify-between items-end mb-4">
 				<Text className="text-text font-header-bold text-xl">
 					Activity Insights
 				</Text>
 			</View>
-
 			<View className="flex-row gap-4 mb-8">
 				<View className="flex-1 bg-white/5 p-5 rounded-2xl border border-white/5 items-start">
 					<Flame color="#00F0C5" size={24} className="mb-3" />
@@ -160,7 +209,6 @@ const UserHome = () => {
 						Current Streak
 					</Text>
 				</View>
-
 				<View className="flex-1 bg-white/5 p-5 rounded-2xl border border-white/5 items-start">
 					<Clock color="#00F0C5" size={24} className="mb-3" />
 					<Text className="text-text font-header-bold text-lg mb-1">
@@ -173,7 +221,6 @@ const UserHome = () => {
 				</View>
 			</View>
 
-			{/* Entry history */}
 			<View className="flex-row justify-between items-end mb-4">
 				<Text className="text-text font-header-bold text-xl">
 					Entry History
@@ -185,68 +232,15 @@ const UserHome = () => {
 				</TouchableOpacity>
 			</View>
 
-			<ScrollView
-				className="flex-1"
-				contentContainerClassName="gap-y-3 pb-[100px]"
+			{/* Scrollable list only */}
+			<FlatList
+				data={recentEntries}
+				keyExtractor={(item) => item.id}
+				renderItem={renderLogItem}
+				style={{ flex: 1 }}
+				contentContainerStyle={{ paddingBottom: 100 }}
 				showsVerticalScrollIndicator={false}
-			>
-				{recentEntries.map((log) => (
-					<View
-						key={log.id}
-						className="bg-white/5 flex-row items-center p-4 rounded-2xl border border-white/5"
-					>
-						{/* Icon Section */}
-						<View className="w-12 h-12 bg-white/5 rounded-full items-center justify-center mr-4">
-							{renderLogIcon(log.status, log.deductedAmount)}
-						</View>
-
-						{/* Main Info Section */}
-						<View className="flex-1">
-							<View className="flex-row items-center">
-								<Text
-									className={`font-header-semibold text-base ${log.status === EntryStatus.GRANTED ? "text-text" : "text-red-400"}`}
-								>
-									{log.status === EntryStatus.GRANTED
-										? "Entry Granted"
-										: "Entry Denied"}
-								</Text>
-							</View>
-
-							<Text className="text-textDim font-body-reg text-xs mt-1">
-								{/* Fallback for the reason if denied */}
-								{log.status === EntryStatus.DENIED
-									? `Reason: ${log.deniedReason?.replace("_", " ") || "Unauthorized"}`
-									: `${new Date(log.entryTime).toLocaleDateString()} at ${formatTime(log.entryTime)}`}
-							</Text>
-						</View>
-
-						{/* Financial/Status Section */}
-						<View className="items-end">
-							<Text
-								className={`${
-									!log.deductedAmount ||
-									log.deductedAmount <= 0
-										? "text-textDim"
-										: "text-neon"
-								} font-body-semibold text-sm`}
-							>
-								{!log.deductedAmount || log.deductedAmount <= 0
-									? log.status === EntryStatus.GRANTED
-										? "Included"
-										: "---"
-									: `-${log.deductedAmount} PHP`}
-							</Text>
-
-							{/* Subtle secondary timestamp for Denied logs */}
-							{log.status === EntryStatus.DENIED && (
-								<Text className="text-[10px] text-white/30 mt-1">
-									{formatTime(log.entryTime)}
-								</Text>
-							)}
-						</View>
-					</View>
-				))}
-			</ScrollView>
+			/>
 		</SafeAreaView>
 	);
 };
