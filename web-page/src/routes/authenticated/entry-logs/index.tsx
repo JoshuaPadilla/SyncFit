@@ -33,6 +33,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { useMqtt } from "@/context/mqtt_context";
 import { EntryStatus } from "@/enums/entry_status.enum";
 import { formatCurrency } from "@/helpers/currency_formatter";
 import { dateFormatter } from "@/helpers/date_formatter";
@@ -40,7 +41,7 @@ import { formatTime } from "@/helpers/time_formatter";
 import { cn } from "@/lib/utils";
 import { useEntryLogStore } from "@/stores/entryLogStore";
 import type { EntryLogQuery } from "@/types/query_types/entry_log_query";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
@@ -69,6 +70,8 @@ export const Route = createFileRoute("/authenticated/entry-logs/")({
 });
 
 export default function RealTimeEntryLogs() {
+	const client = useMqtt();
+	const queryClient = useQueryClient();
 	const { insights } = Route.useLoaderData();
 	const { fetchAllLogs } = useEntryLogStore();
 
@@ -147,6 +150,54 @@ export default function RealTimeEntryLogs() {
 			setQuery((prev) => ({ ...prev, page: newPage }));
 		}
 	};
+
+	useEffect(() => {
+		if (!client) return;
+
+		const topicToSubscribe = `rfid/registration/newEntry`;
+
+		// Define the handler function so we can reference it for removal
+		const handleMessage = (topic: any, mqttMessage: any) => {
+			const newLog = JSON.parse(mqttMessage.toString()).data;
+
+			if (topic === topicToSubscribe) {
+				queryClient.setQueryData(
+					["entry-logs", query],
+					(oldData: any) => {
+						if (!oldData) return oldData;
+
+						// Prepend the new log and keep only the limit (e.g., 5)
+						const updatedData = [newLog, ...oldData.data].slice(
+							0,
+							5,
+						);
+
+						return {
+							...oldData,
+							data: updatedData,
+							total: oldData.total + 1,
+						};
+					},
+				);
+				try {
+				} catch (err) {
+					console.error("Failed to parse MQTT message", err);
+				}
+			}
+		};
+
+		// 1. Subscribe
+		client.subscribe(topicToSubscribe);
+
+		// 2. Listen
+		client.on("message", handleMessage);
+
+		// 3. Cleanup (Crucial!)
+		return () => {
+			client.unsubscribe(topicToSubscribe);
+			client.off("message", handleMessage); // This stops the leak
+		};
+	}, [client]);
 
 	return (
 		<div className="min-h-screen bg-background text-foreground p-8 flex flex-col gap-8 font-body-reg dark">

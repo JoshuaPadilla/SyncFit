@@ -139,13 +139,15 @@ export class RfidService implements OnModuleInit {
             createdAt: new Date(),
             entryTime: new Date(),
           });
-          await manager.save(newLog);
+          const savedEntryLog = await manager.save(newLog);
+          this.client.emit('rfid/registration/newEntry', savedEntryLog);
+
           return false;
         }
 
         const member = await manager.findOne(Member, {
           where: { id: baseMember.id },
-          relations: ['membershipPlan'],
+          relations: ['membershipPlan', 'user'],
         });
 
         if (!member) {
@@ -157,11 +159,12 @@ export class RfidService implements OnModuleInit {
             entryTime: new Date(),
           });
 
-          await manager.save(newLog);
+          const savedEntryLog = await manager.save(newLog);
+          this.client.emit('rfid/registration/newEntry', savedEntryLog);
           return false;
         }
 
-        console.log('Member found for UID:', uid, 'Member ID:', member.id);
+        // console.log('Member found for UID:', uid, 'Member ID:', member.id);
         // Prepare the log (don't save yet)
 
         const newEntryLog = manager.create(EntryLog, {
@@ -238,7 +241,9 @@ export class RfidService implements OnModuleInit {
 
         // 4. Grant Access
         newEntryLog.status = EntryStatus.GRANTED;
-        await manager.save(newEntryLog);
+        const savedEntryLog = await manager.save(newEntryLog);
+        this.client.emit('rfid/registration/newEntry', savedEntryLog);
+
         return true; // Entire transaction commits automatically here
       })
       .catch((err) => {

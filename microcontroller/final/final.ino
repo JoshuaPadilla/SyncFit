@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <ESP32Servo.h>
+#include <ArduinoJson.h>
 
 #include "secrets.h"
 
@@ -17,6 +18,10 @@ const char* mqtt_pass   = MQTT_PASS;
 
 const int buzzerPin = 14;
 const int servoPin = 18;
+const int red = 2;
+const int green = 47;
+bool shouldBlinkGreen = false;
+bool shouldBlinkRed = false;
 
 // --- Hardware Pins ---
 #define SS_PIN  10
@@ -28,16 +33,20 @@ PubSubClient client(espClient);
 Servo myServo;
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  String message = "";
-  for (int i = 0; i < length; i++) {
-    message += (char)payload[i];
-  }
+  StaticJsonDocument<200> doc;
+  deserializeJson(doc, payload, length);
+  
+  // Extract the "data" field from the JSON
+  String status = doc["data"]; 
+  
+  Serial.print("Status received: ");
+  Serial.println(status);
 
-  if (String(topic) == "gym/door/command") {
-    if (message == "unlock") {
-      callBackSound();
-      Serial.println(message);
-    }
+  if (status == "unlock") {
+    shouldBlinkGreen = true;
+  } else {
+    Serial.println("Access Denied");
+    shouldBlinkRed = true;
   }
 }
 
@@ -78,6 +87,9 @@ void setup() {
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port);
+  client.setCallback(callback);
+  pinMode(red, OUTPUT);
+  pinMode(green, OUTPUT);
   // ESP32PWM::allocateTimer(0);
   // myServo.setPeriodHertz(50);    // Standard 50hz servo
   // myServo.attach(servoPin, 500, 2400); // Attach with min/max pulse widths
@@ -94,6 +106,15 @@ void loop() {
   }
   client.loop();
 
+  if (shouldBlinkGreen) {
+    blinkLed(green, 2000);
+    shouldBlinkGreen = false;
+  }
+  if (shouldBlinkRed) {
+    blinkLed(red, 2000);
+    shouldBlinkRed = false;
+  }
+
   // Look for new cards
   if (!mfrc522.PICC_IsNewCardPresent()) return;
   if (!mfrc522.PICC_ReadCardSerial()) return;
@@ -108,6 +129,8 @@ void loop() {
 
   Serial.print("Tag Scanned: ");
   Serial.println(uidString);
+
+
 
   // Publish to your VPS
   if (client.publish("gym/rfid/scan", uidString.c_str())) {
@@ -135,6 +158,13 @@ void callBackSound() {
   tone(buzzerPin, 800); // Send 1KHz sound signal...
   delay(1000);        // ...for 1 sec
   noTone(buzzerPin);     // Stop sound...
+}
+
+void blinkLed(int pin, int duration) {
+  digitalWrite(pin, HIGH);
+  delay(duration);
+  digitalWrite(pin, LOW);
+  delay(duration);
 }
 
 
