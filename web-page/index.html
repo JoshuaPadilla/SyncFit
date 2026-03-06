@@ -2,12 +2,195 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="icon" type="image/svg+xml" href="/web_logo.png" />
+		<link rel="icon" type="image/png" href="/web_logo.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>SyncFit</title>
+		<style>
+			#app-loader {
+				position: fixed;
+				inset: 0;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				background-color: #09090b;
+				z-index: 9999;
+				gap: 32px;
+				animation: loaderFadeIn 0.3s ease forwards;
+			}
+
+			@keyframes loaderFadeIn {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+
+			/* --- Logo pulse rings --- */
+			.loader-logo-wrap {
+				position: relative;
+				width: 120px;
+				height: 120px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.loader-ring {
+				position: absolute;
+				inset: 0;
+				border-radius: 50%;
+				border: 2px solid transparent;
+				animation: ringPulse 2s ease-out infinite;
+			}
+
+			.loader-ring:nth-child(1) {
+				border-color: rgba(255, 255, 255, 0.25);
+				animation-delay: 0s;
+			}
+
+			.loader-ring:nth-child(2) {
+				inset: -14px;
+				border-color: rgba(255, 255, 255, 0.12);
+				animation-delay: 0.4s;
+			}
+
+			.loader-ring:nth-child(3) {
+				inset: -28px;
+				border-color: rgba(255, 255, 255, 0.06);
+				animation-delay: 0.8s;
+			}
+
+			@keyframes ringPulse {
+				0% {
+					transform: scale(0.85);
+					opacity: 0;
+				}
+				40% {
+					opacity: 1;
+				}
+				100% {
+					transform: scale(1.25);
+					opacity: 0;
+				}
+			}
+
+			.loader-logo-bg {
+				width: 96px;
+				height: 96px;
+				border-radius: 24px;
+				background: #18181b;
+				border: 1px solid #27272a;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				box-shadow: 0 0 40px rgba(255, 255, 255, 0.04);
+				animation: logoBreathe 2.4s ease-in-out infinite;
+			}
+
+			@keyframes logoBreathe {
+				0%,
+				100% {
+					transform: scale(1);
+					box-shadow: 0 0 40px rgba(255, 255, 255, 0.04);
+				}
+				50% {
+					transform: scale(1.04);
+					box-shadow: 0 0 56px rgba(255, 255, 255, 0.1);
+				}
+			}
+
+			.loader-logo-bg img {
+				width: 60px;
+				height: 60px;
+				object-fit: contain;
+				user-select: none;
+				-webkit-user-drag: none;
+			}
+
+			/* --- Word mark --- */
+			.loader-wordmark {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 6px;
+			}
+
+			.loader-wordmark span {
+				font-family:
+					system-ui,
+					-apple-system,
+					BlinkMacSystemFont,
+					"Segoe UI",
+					sans-serif;
+				font-size: 22px;
+				font-weight: 700;
+				letter-spacing: 0.08em;
+				color: #fafafa;
+				text-transform: uppercase;
+			}
+
+			/* --- Progress track --- */
+			.loader-track {
+				width: 160px;
+				height: 2px;
+				background: #27272a;
+				border-radius: 999px;
+				overflow: hidden;
+			}
+
+			.loader-bar {
+				height: 100%;
+				border-radius: 999px;
+				background: linear-gradient(
+					90deg,
+					#52525b 0%,
+					#e4e4e7 50%,
+					#52525b 100%
+				);
+				background-size: 200% 100%;
+				animation: shimmer 1.6s linear infinite;
+			}
+
+			@keyframes shimmer {
+				0% {
+					background-position: 200% center;
+				}
+				100% {
+					background-position: -200% center;
+				}
+			}
+
+			/* --- Fade-out when React is ready --- */
+			#app-loader {
+				transition: opacity 0.4s ease;
+			}
+			#app-loader.hidden {
+				opacity: 0;
+				pointer-events: none;
+			}
+		</style>
 	</head>
 	<body>
 		<div id="app"></div>
+		<div id="app-loader">
+			<div class="loader-logo-wrap">
+				<div class="loader-ring"></div>
+				<div class="loader-ring"></div>
+				<div class="loader-ring"></div>
+				<div class="loader-logo-bg">
+					<img src="/web_logo.png" alt="SyncFit" draggable="false" />
+				</div>
+			</div>
+			<div class="loader-wordmark">
+				<span>SyncFit</span>
+				<div class="loader-track">
+					<div class="loader-bar"></div>
+				</div>
+			</div>
+		</div>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

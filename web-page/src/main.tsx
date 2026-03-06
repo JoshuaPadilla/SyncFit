@@ -1,5 +1,5 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 
 // 1. Import your context and the generated route tree
@@ -33,12 +33,29 @@ declare module "@tanstack/react-router" {
 const queryClient = new QueryClient();
 
 // 4. Create a component to wrap the Provider and pass context
+function dismissLoader() {
+	const loader = document.getElementById("app-loader");
+	if (!loader) return;
+	loader.classList.add("hidden");
+	const cleanup = () => loader.remove();
+	loader.addEventListener("transitionend", cleanup, { once: true });
+	// Fallback: force remove if transitionend never fires
+	setTimeout(cleanup, 600);
+}
+
 function App() {
 	const auth = useAuth();
 	const user = useUserStore();
 	const entry_log = useEntryLogStore();
+
+	useEffect(() => {
+		if (!auth.isLoading) {
+			dismissLoader();
+		}
+	}, [auth.isLoading]);
+
 	if (auth.isLoading) {
-		return <div style={{ color: "white" }}>Loading SyncFit...</div>;
+		return null;
 	}
 	// We pass the auth state into the router context here
 	return (
@@ -49,17 +66,15 @@ function App() {
 	);
 }
 
-const rootElement = document.getElementById("app")!; // Note: usually "root" in Vite, "app" in your snippet
+const rootElement = document.getElementById("app")!;
 
-if (!rootElement.innerHTML) {
-	const root = ReactDOM.createRoot(rootElement);
-	root.render(
-		<StrictMode>
-			<QueryClientProvider client={queryClient}>
-				<AuthProvider>
-					<App />
-				</AuthProvider>
-			</QueryClientProvider>
-		</StrictMode>,
-	);
-}
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+	<StrictMode>
+		<QueryClientProvider client={queryClient}>
+			<AuthProvider>
+				<App />
+			</AuthProvider>
+		</QueryClientProvider>
+	</StrictMode>,
+);
