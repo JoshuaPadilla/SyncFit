@@ -17,6 +17,8 @@ type AuthData = {
 	user: User | null;
 	isLoading: boolean;
 	isLoggedIn: boolean;
+	isFirstTime: boolean;
+	isFirstTimeResolved: boolean;
 	signIn: (email: string, pass: string) => Promise<any>;
 	signUp: (email: string, pass: string) => Promise<any>;
 	signOut: () => Promise<void>;
@@ -28,7 +30,8 @@ const AuthContext = createContext<AuthData | undefined>(undefined);
 export function AuthProvider({ children }: PropsWithChildren) {
 	const router = useRouter();
 	const { fetchLoggedUser } = useUserStore();
-	const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
+	const [isFirstTime, setIsFirstTime] = useState<boolean>(true);
+	const [isFirstTimeResolved, setIsFirstTimeResolved] = useState(false);
 	const [session, setSession] = useState<Session | null>(null);
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +76,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			const hasOpened = await getItemAsync("hasOpened");
 
 			if (hasOpened) setIsFirstTime(false);
-			setIsFirstTime(hasOpened === null);
+			setIsFirstTimeResolved(true);
 			try {
 				const {
 					data: { session: currentSession },
@@ -93,6 +96,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		const {
 			data: { subscription },
 		} = supabase.auth.onAuthStateChange(async (_event, session) => {
+			// INITIAL_SESSION is the cached token on startup — initAuth already
+			// handles that via getSession(). Letting it run here races with
+			// getItemAsync("hasOpened") and sets isLoading=false too early.
+			if (_event === "INITIAL_SESSION") return;
+
 			setSession(session);
 			if (session) {
 				setIsLoading(true);
@@ -108,15 +116,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 	// 2. ROUTING: Redirect whenever loading finishes or user state changes
 	useEffect(() => {
-		if (isLoading) return;
-
-		// Note: You can add logic here to check 'segments' if you want to avoid
-		// redirecting users who are already on the correct screen.
-
-		// router.replace("/(auth_screens)/payment-test");
+		// Wait until BOTH the session check AND the isFirstTime check are done
+		if (isLoading || !isFirstTimeResolved) return;
 
 		if (isFirstTime) {
 			router.replace("/");
+			return;
 		}
 
 		if (!session) {
@@ -135,7 +140,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			// All good -> Home
 			router.replace("/(auth_screens)/(user)/(tabs)/user_home");
 		}
-	}, [isLoading, session, user]);
+	}, [isLoading, isFirstTimeResolved, isFirstTime, session, user]);
 
 	return (
 		<AuthContext.Provider
@@ -144,6 +149,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				user,
 				isLoading,
 				isLoggedIn: !!session,
+				isFirstTime,
+				isFirstTimeResolved,
 				// Expose them here:
 				signIn,
 				signUp,

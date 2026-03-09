@@ -342,7 +342,6 @@ const EntryHistory = () => {
 				keyExtractor={(item) => item.id}
 				renderItem={renderLogItem}
 				ListHeaderComponent={ListHeader}
-				showsVerticalScrollIndicator={false}
 				onEndReached={handleLoadMore}
 				onEndReachedThreshold={0.3}
 				contentContainerStyle={{

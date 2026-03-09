@@ -7,7 +7,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { BanknoteX } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import {
+	ActivityIndicator,
+	FlatList,
+	Text,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const transactions = [
@@ -31,14 +37,24 @@ const UserWallet = () => {
 	const { user } = useAuth();
 	const { getUserTransactions } = useUserStore();
 
+	const [loading, setLoading] = useState(false);
 	const [recentTransactions, setRecentTransactions] = useState<Transaction[]>(
 		[],
 	);
 
 	useEffect(() => {
 		const fetchTransactions = async () => {
-			const transactions = await getUserTransactions();
-			setRecentTransactions(transactions);
+			try {
+				setLoading(true);
+				const transactions = await getUserTransactions();
+				setRecentTransactions(transactions);
+			} catch (error) {
+				console.error("Error fetching transactions:", error);
+				// Optionally, set an error state here to display an error message to the user
+				setRecentTransactions([]); // Clear transactions on error
+			} finally {
+				setLoading(false);
+			}
 		};
 
 		fetchTransactions();
@@ -92,28 +108,34 @@ const UserWallet = () => {
 				Recent Transactions
 			</Text>
 
-			<FlatList
-				data={recentTransactions}
-				keyExtractor={(item) => item.id}
-				renderItem={renderTransaction}
-				showsVerticalScrollIndicator={false}
-				removeClippedSubviews={true}
-				contentContainerStyle={{
-					paddingBottom: 200,
-					flexGrow: 1,
-					justifyContent:
-						recentTransactions.length === 0
-							? "center"
-							: "flex-start", // Centers only if empty
-				}}
-				ListEmptyComponent={() => (
-					<EmptyState
-						title="No Transactions"
-						message="You haven't made any transactions yet."
-						icon={<BanknoteX color="#FFFFFF" size={24} />}
-					/>
-				)}
-			/>
+			{loading ? (
+				<View className="flex-1 items-center pt-16">
+					<ActivityIndicator size="large" color="#00F0C5" />
+				</View>
+			) : (
+				<FlatList
+					data={recentTransactions}
+					keyExtractor={(item) => item.id}
+					renderItem={renderTransaction}
+					showsVerticalScrollIndicator={false}
+					removeClippedSubviews={true}
+					contentContainerStyle={{
+						paddingBottom: 200,
+						flexGrow: 1,
+						justifyContent:
+							recentTransactions.length === 0
+								? "center"
+								: "flex-start", // Centers only if empty
+					}}
+					ListEmptyComponent={() => (
+						<EmptyState
+							title="No Transactions"
+							message="You haven't made any transactions yet."
+							icon={<BanknoteX color="#FFFFFF" size={24} />}
+						/>
+					)}
+				/>
+			)}
 		</SafeAreaView>
 	);
 };

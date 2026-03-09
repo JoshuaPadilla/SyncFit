@@ -1,8 +1,7 @@
-import { useAuth } from "@/context/authContext";
 import { SLIDES } from "@/static_data/onboarding_slides_data";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
 	FlatList,
@@ -15,6 +14,7 @@ import {
 	ViewToken,
 } from "react-native";
 // 1. IMPORT REANIMATED
+import { useAuth } from "@/context/authContext";
 import { setItemAsync } from "expo-secure-store";
 import Animated, {
 	Extrapolation,
@@ -132,21 +132,13 @@ const PaginationDot = ({ index, scrollX, width }: any) => {
 
 // 5. MAIN COMPONENT
 export default function OnboardingScreen() {
-	const { session, isLoading } = useAuth();
-
-	// If we have a session, render nothing so the user doesn't see
-	// the onboarding slides while the redirect is happening.
+	const { isFirstTime, session, user } = useAuth();
 
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const slidesRef = useRef<FlatList>(null);
 	const { width } = useWindowDimensions();
 
 	const screenOpacity = useSharedValue(1);
-
-	// 2. Animated style for the root view
-	const animatedScreenStyle = useAnimatedStyle(() => ({
-		opacity: screenOpacity.value,
-	}));
 
 	// REANIMATED: Replace useRef(new Animated.Value(0)) with useSharedValue
 	const scrollX = useSharedValue(0);
@@ -191,14 +183,25 @@ export default function OnboardingScreen() {
 		}
 	};
 
-	if (session || isLoading)
-		return (
-			<View style={{ flex: 1, backgroundColor: "#020807" }}>
-				{/* Optional: You can put an <Image /> here that 
-                   matches your splash icon to make reloads seamless.
-                */}
-			</View>
-		);
+	const handleSkip = async () => {
+		await setItemAsync("hasOpened", "true");
+		router.replace("/(onboarding)/register");
+	};
+
+	if (!isFirstTime) {
+		if (!session) return <Redirect href="/(onboarding)/login" />;
+		if (!user) return <Redirect href="/profile_completion" />;
+		if (!user.member)
+			return (
+				<Redirect
+					href={{
+						pathname: "/profile_completion",
+						params: { stepParam: 2 },
+					}}
+				/>
+			);
+		return <Redirect href="/(auth_screens)/(user)/(tabs)/user_home" />;
+	}
 
 	return (
 		<View style={{ flex: 1, backgroundColor: "#020807" }}>
@@ -269,11 +272,7 @@ export default function OnboardingScreen() {
 							/>
 						</TouchableOpacity>
 
-						<TouchableOpacity
-							onPress={() =>
-								router.replace("/(onboarding)/register")
-							}
-						>
+						<TouchableOpacity onPress={handleSkip}>
 							<Text className="text-gray-500 text-center text-sm font-medium">
 								Skip
 							</Text>

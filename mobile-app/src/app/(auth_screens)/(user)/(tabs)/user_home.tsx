@@ -43,6 +43,7 @@ const UserHome = () => {
 		user?.member?.membershipPlan.type === MembershipType.PREPAID;
 
 	useEffect(() => {
+		if (!user) return;
 		const init = async () => {
 			const result = await getUserDashboardInsights();
 			const logs = await fetchLogs({
@@ -53,7 +54,7 @@ const UserHome = () => {
 			if (result) setInsights(result);
 		};
 		init();
-	}, []);
+	}, [user]);
 
 	const renderLogItem = useCallback(
 		({ item: log }: { item: EntryLog }) => (
@@ -136,7 +137,7 @@ const UserHome = () => {
 					</Text>
 					<View className="flex-row items-end mb-6">
 						<Text className="text-text font-header-bold text-4xl">
-							{formatCurrency(user!.member?.balance)}
+							{formatCurrency(user?.member?.balance)}
 						</Text>
 						<Text className="text-neon font-header-bold text-lg ml-2 mb-1">
 							PHP
@@ -148,7 +149,7 @@ const UserHome = () => {
 								Status
 							</Text>
 							<Text className="text-text font-body-med text-xs mt-1">
-								{user!.member?.status}
+								{user?.member?.status}
 							</Text>
 						</View>
 						<TouchableOpacity className="bg-neon flex-row items-center px-4 py-2.5 rounded-xl">

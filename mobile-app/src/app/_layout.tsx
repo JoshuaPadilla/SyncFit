@@ -2,8 +2,8 @@ import { AuthProvider, useAuth } from "@/context/authContext";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { View } from "lucide-react-native";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Animated, StyleSheet, View } from "react-native";
 import "./global.css";
 
 // Keep this here so it runs immediately
@@ -18,7 +18,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-	const { isLoading, session } = useAuth();
+	const { isLoading, isFirstTimeResolved } = useAuth();
 	const [loaded, error] = useFonts({
 		// Inter Weights
 		"Inter-Light": require("../../assets/fonts/Inter_28pt-Light.ttf"),
@@ -35,6 +35,9 @@ function RootLayoutNav() {
 		"Mont-ExtraBold": require("../../assets/fonts/Montserrat-ExtraBold.ttf"),
 	});
 
+	const fadeAnim = useRef(new Animated.Value(0)).current;
+	const scaleAnim = useRef(new Animated.Value(0.85)).current;
+
 	useEffect(() => {
 		if (error) throw error;
 	}, [error]);
@@ -46,13 +49,53 @@ function RootLayoutNav() {
 		}
 	}, [loaded, error, isLoading]);
 
-	// If assets aren't ready, keep showing the splash screen (render nothing)
-	if (!loaded || isLoading)
+	useEffect(() => {
+		// Fade + scale in, then gently pulse
+		Animated.sequence([
+			Animated.parallel([
+				Animated.timing(fadeAnim, {
+					toValue: 1,
+					duration: 600,
+					useNativeDriver: true,
+				}),
+				Animated.spring(scaleAnim, {
+					toValue: 1,
+					friction: 6,
+					tension: 80,
+					useNativeDriver: true,
+				}),
+			]),
+			Animated.loop(
+				Animated.sequence([
+					Animated.timing(scaleAnim, {
+						toValue: 1.06,
+						duration: 900,
+						useNativeDriver: true,
+					}),
+					Animated.timing(scaleAnim, {
+						toValue: 1,
+						duration: 900,
+						useNativeDriver: true,
+					}),
+				]),
+			),
+		]).start();
+	}, []);
+
+	if (!loaded || isLoading || !isFirstTimeResolved)
 		return (
-			<View style={{ flex: 1, backgroundColor: "#020807" }}>
-				{/* Optional: You can put an <Image /> here that 
-                   matches your splash icon to make reloads seamless.
-                */}
+			<View style={styles.loadingContainer}>
+				<Animated.Image
+					source={require("../../assets/images/app_logo.png")}
+					style={[
+						styles.logo,
+						{
+							opacity: fadeAnim,
+							transform: [{ scale: scaleAnim }],
+						},
+					]}
+					resizeMode="contain"
+				/>
 			</View>
 		);
 
@@ -63,9 +106,22 @@ function RootLayoutNav() {
 				animation: "fade_from_bottom",
 			}}
 		>
-			<Stack.Screen name="index" />
 			<Stack.Screen name="(auth_screens)" />
 			<Stack.Screen name="(onboarding)" />
+			<Stack.Screen name="index" />
 		</Stack>
 	);
 }
+
+const styles = StyleSheet.create({
+	loadingContainer: {
+		flex: 1,
+		backgroundColor: "#020807",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	logo: {
+		width: 180,
+		height: 180,
+	},
+});
