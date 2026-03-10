@@ -17,6 +17,7 @@ import {
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 // Using Lucide Icons as requested
+import CustomButton from "@/components/custom_button";
 import { useAuth } from "@/context/authContext";
 import { Image } from "expo-image";
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react-native";
@@ -24,11 +25,18 @@ import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react-native";
 export default function LoginScreen() {
 	const { signIn } = useAuth();
 	const [passwordVisible, setPasswordVisible] = useState(false);
-	const [email, setEmail] = useState("sample@email.com");
-	const [password, setPassword] = useState("12345678");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleLogin = async () => {
-		await signIn(email, password);
+		try {
+			setIsLoading(true);
+			await signIn(email, password);
+		} catch (error) {
+			console.log("Login Error:", error);
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -159,7 +167,19 @@ export default function LoginScreen() {
 									entering={FadeInDown.delay(500).springify()}
 									className="mt-4"
 								>
-									<TouchableOpacity
+									<CustomButton
+										onPress={handleLogin}
+										isDisabled={isLoading}
+										isLoading={isLoading}
+										title="SIGN IN"
+										icon={
+											<ArrowRight
+												size={20}
+												color="#000"
+											/>
+										}
+									/>
+									{/* <TouchableOpacity
 										activeOpacity={0.8}
 										className="bg-neon h-16 rounded-2xl flex-row items-center justify-center shadow-2xl shadow-neon/20"
 										onPress={handleLogin}
@@ -168,7 +188,7 @@ export default function LoginScreen() {
 											SIGN IN
 										</Text>
 										<ArrowRight size={20} color="#000" />
-									</TouchableOpacity>
+									</TouchableOpacity> */}
 								</Animated.View>
 							</View>
 

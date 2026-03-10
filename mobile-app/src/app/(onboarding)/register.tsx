@@ -17,6 +17,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 // Import FontAwesome for the Google Icon
 // Lucide Icons
+import CustomButton from "@/components/custom_button";
 import { useAuth } from "@/context/authContext";
 import { Image } from "expo-image";
 import { Eye, EyeOff, Lock, Mail, UserPlus } from "lucide-react-native";
@@ -25,13 +26,20 @@ export default function RegisterScreen() {
 	const { signUp } = useAuth();
 	const [passwordVisible, setPasswordVisible] = useState(false);
 	const [form, setForm] = useState({
-		email: "sample@email.com",
-		password: "12345678",
-		confirmPassword: "12345678",
+		email: "",
+		password: "",
+		confirmPassword: "",
 	});
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleSignup = async () => {
-		await signUp(form.email, form.confirmPassword);
+		try {
+			setIsLoading(true);
+			await signUp(form.email, form.confirmPassword);
+		} catch (error) {
+			console.log("Sign Up Error:", error);
+			setIsLoading(false);
+		}
 	};
 
 	// Placeholder for Google Auth Logic
@@ -222,27 +230,19 @@ export default function RegisterScreen() {
 									entering={FadeInDown.delay(700).springify()}
 									className="mt-4"
 								>
-									<TouchableOpacity
-										disabled={
+									<CustomButton
+										onPress={handleSignup}
+										isDisabled={
 											!form.password ||
 											form.password !==
 												form.confirmPassword
 										}
-										activeOpacity={0.8}
-										className={`${
-											!form.password ||
-											form.password !==
-												form.confirmPassword
-												? "bg-neon/20"
-												: "bg-neon"
-										} h-16 rounded-2xl flex-row items-center justify-center  shadow-2xl shadow-neon/20`}
-										onPress={() => handleSignup()}
-									>
-										<Text className="text-lg font-black mr-2 text-black">
-											SIGN UP
-										</Text>
-										<UserPlus size={20} color="#000" />
-									</TouchableOpacity>
+										isLoading={isLoading}
+										icon={
+											<UserPlus size={20} color="#000" />
+										}
+										title="SIGN UP"
+									/>
 								</Animated.View>
 
 								{/* DIVIDER */}

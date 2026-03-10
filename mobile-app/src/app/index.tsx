@@ -1,7 +1,7 @@
 import { SLIDES } from "@/static_data/onboarding_slides_data";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Redirect, router } from "expo-router";
+import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
 	FlatList,
@@ -133,7 +133,11 @@ const PaginationDot = ({ index, scrollX, width }: any) => {
 // 5. MAIN COMPONENT
 export default function OnboardingScreen() {
 	const { isFirstTime, session, user } = useAuth();
-
+	console.log("Auth state in OnboardingScreen:", {
+		isFirstTime,
+		session,
+		user,
+	});
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const slidesRef = useRef<FlatList>(null);
 	const { width } = useWindowDimensions();
@@ -189,20 +193,8 @@ export default function OnboardingScreen() {
 	};
 
 	if (!isFirstTime) {
-		if (!session) return <Redirect href="/(onboarding)/login" />;
-		if (!user) return <Redirect href="/profile_completion" />;
-		if (!user.member)
-			return (
-				<Redirect
-					href={{
-						pathname: "/profile_completion",
-						params: { stepParam: 2 },
-					}}
-				/>
-			);
-		return <Redirect href="/(auth_screens)/(user)/(tabs)/user_home" />;
+		return null;
 	}
-
 	return (
 		<View style={{ flex: 1, backgroundColor: "#020807" }}>
 			<StatusBar barStyle="light-content" />

@@ -32,6 +32,7 @@ const renderLogIcon = (status: string, deducted: number | null) => {
 
 const UserHome = () => {
 	const { user } = useAuth();
+
 	const { fetchLogs } = useEntryLogStore();
 	const { getUserDashboardInsights } = useUserStore();
 	const [insights, setInsights] = useState<UserDashboardInsights | null>(
@@ -44,6 +45,7 @@ const UserHome = () => {
 
 	useEffect(() => {
 		if (!user) return;
+
 		const init = async () => {
 			const result = await getUserDashboardInsights();
 			const logs = await fetchLogs({

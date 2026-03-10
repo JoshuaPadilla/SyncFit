@@ -3,7 +3,7 @@ import CustomButton from "@/components/custom_button";
 import { useAuth } from "@/context/authContext";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
 	DimensionValue,
 	FlatList,
@@ -41,10 +41,18 @@ const UserProfile = () => {
 	const { signOut, user } = useAuth();
 	const { entryLogsTotal } = useEntryLogStore();
 	const isPrepaid = user?.member?.membershipPlan.type === "prepaid";
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleSignOut = async () => {
-		await signOut();
-		router.replace("/(onboarding)/login");
+		try {
+			setIsLoading(true);
+
+			await signOut();
+			router.replace("/(onboarding)/login");
+		} catch (error) {
+			console.log("Sign Out Error:", error);
+			setIsLoading(false);
+		}
 	};
 
 	const progressWidth: DimensionValue = isPrepaid
@@ -198,7 +206,12 @@ const UserProfile = () => {
 				/>
 			</View>
 
-			<CustomButton onPress={handleSignOut} title="Sign Out" />
+			<CustomButton
+				onPress={handleSignOut}
+				title="Sign Out"
+				isDisabled={isLoading}
+				isLoading={isLoading}
+			/>
 		</>
 	);
 

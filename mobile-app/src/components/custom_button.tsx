@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "center",
-		marginTop: 48, // mt-12
+		marginTop: 12, // mt-12
 	},
 	buttonActive: {
 		backgroundColor: COLORS.neon,

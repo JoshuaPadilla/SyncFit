@@ -1,8 +1,8 @@
 import { AuthProvider, useAuth } from "@/context/authContext";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import "./global.css";
 
@@ -18,7 +18,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-	const { isLoading, isFirstTimeResolved } = useAuth();
+	const { isLoading } = useAuth();
 	const [loaded, error] = useFonts({
 		// Inter Weights
 		"Inter-Light": require("../../assets/fonts/Inter_28pt-Light.ttf"),
@@ -38,16 +38,18 @@ function RootLayoutNav() {
 	const fadeAnim = useRef(new Animated.Value(0)).current;
 	const scaleAnim = useRef(new Animated.Value(0.85)).current;
 
+	const [isInitialLoad, setIsInitialLoad] = useState(true);
+
 	useEffect(() => {
 		if (error) throw error;
 	}, [error]);
 
 	useEffect(() => {
-		// Hide splash screen only when BOTH fonts are loaded AND auth is checked
 		if (loaded && !isLoading) {
 			SplashScreen.hideAsync();
+			setIsInitialLoad(false); // 2. Lock this to false once loaded
 		}
-	}, [loaded, error, isLoading]);
+	}, [loaded, isLoading]);
 
 	useEffect(() => {
 		// Fade + scale in, then gently pulse
@@ -82,7 +84,7 @@ function RootLayoutNav() {
 		]).start();
 	}, []);
 
-	if (!loaded || isLoading || !isFirstTimeResolved)
+	if (isInitialLoad) {
 		return (
 			<View style={styles.loadingContainer}>
 				<Animated.Image
@@ -98,19 +100,9 @@ function RootLayoutNav() {
 				/>
 			</View>
 		);
+	}
 
-	return (
-		<Stack
-			screenOptions={{
-				headerShown: false,
-				animation: "fade_from_bottom",
-			}}
-		>
-			<Stack.Screen name="(auth_screens)" />
-			<Stack.Screen name="(onboarding)" />
-			<Stack.Screen name="index" />
-		</Stack>
-	);
+	return <Slot />;
 }
 
 const styles = StyleSheet.create({
