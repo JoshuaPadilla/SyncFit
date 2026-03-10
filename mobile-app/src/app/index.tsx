@@ -1,8 +1,10 @@
 import { SLIDES } from "@/static_data/onboarding_slides_data";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
+
 import {
 	FlatList,
 	Image,
@@ -15,7 +17,6 @@ import {
 } from "react-native";
 // 1. IMPORT REANIMATED
 import { useAuth } from "@/context/authContext";
-import { setItemAsync } from "expo-secure-store";
 import Animated, {
 	Extrapolation,
 	interpolate,
@@ -133,11 +134,7 @@ const PaginationDot = ({ index, scrollX, width }: any) => {
 // 5. MAIN COMPONENT
 export default function OnboardingScreen() {
 	const { isFirstTime, session, user } = useAuth();
-	console.log("Auth state in OnboardingScreen:", {
-		isFirstTime,
-		session,
-		user,
-	});
+
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const slidesRef = useRef<FlatList>(null);
 	const { width } = useWindowDimensions();
@@ -172,7 +169,7 @@ export default function OnboardingScreen() {
 		if (currentIndex < SLIDES.length - 1) {
 			slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
 		} else {
-			await setItemAsync("hasOpened", "true");
+			await AsyncStorage.setItem("hasOpened", "true");
 
 			screenOpacity.value = withTiming(
 				0,
@@ -188,7 +185,7 @@ export default function OnboardingScreen() {
 	};
 
 	const handleSkip = async () => {
-		await setItemAsync("hasOpened", "true");
+		await AsyncStorage.setItem("hasOpened", "true");
 		router.replace("/(onboarding)/register");
 	};
 

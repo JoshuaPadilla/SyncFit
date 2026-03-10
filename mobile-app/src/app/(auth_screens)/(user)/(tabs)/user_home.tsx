@@ -214,7 +214,7 @@ const UserHome = () => {
 				</View>
 				<View className="flex-1 bg-white/5 p-5 rounded-2xl border border-white/5 items-start">
 					<Clock color="#00F0C5" size={24} className="mb-3" />
-					<Text className="text-text font-header-bold text-lg mb-1">
+					<Text className="text-text font-header-bold text-sm mb-1">
 						{dateFormatter(insights?.lastVisit) ||
 							"Not Visited yet"}
 					</Text>
@@ -224,6 +224,7 @@ const UserHome = () => {
 				</View>
 			</View>
 
+			{/* Entry history list */}
 			<View className="flex-row justify-between items-end mb-4">
 				<Text className="text-text font-header-bold text-xl">
 					Entry History

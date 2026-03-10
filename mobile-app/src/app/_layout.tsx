@@ -108,7 +108,7 @@ function RootLayoutNav() {
 const styles = StyleSheet.create({
 	loadingContainer: {
 		flex: 1,
-		backgroundColor: "#020807",
+		backgroundColor: "#0d2120",
 		alignItems: "center",
 		justifyContent: "center",
 	},

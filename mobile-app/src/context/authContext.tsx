@@ -1,9 +1,9 @@
 import { supabase } from "@/_lib/supabase";
 import { useUserStore } from "@/_stores/userStore";
 import { User } from "@/types/user";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Session } from "@supabase/supabase-js";
 import { useRootNavigationState, useRouter, useSegments } from "expo-router";
-import { getItemAsync } from "expo-secure-store";
 import {
 	createContext,
 	PropsWithChildren,
@@ -41,6 +41,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const completeOnboarding = () => setIsFirstTime(false);
 
 	const refreshUser = async () => {
+		console.log("Refreshing User...");
 		try {
 			const loggedUser = await fetchLoggedUser();
 			setUser(loggedUser);
@@ -78,7 +79,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	// 1. INITIALIZATION: Check Session AND Profile before unblocking UI
 	useEffect(() => {
 		const initAuth = async () => {
-			const hasOpened = await getItemAsync("hasOpened");
+			console.log("Initializing Auth...");
+			const hasOpened = await AsyncStorage.getItem("hasOpened");
 
 			if (hasOpened) {
 				setIsFirstTime(false);
@@ -94,6 +96,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 					await refreshUser();
 				}
 			} finally {
+				console.log(
+					"Auth Initialization Complete: Setting isLoading to false",
+				); // 👈 Add this
 				setIsLoading(false);
 			}
 		};
@@ -122,13 +127,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		// 🚨 CRITICAL FIX: Do absolutely nothing until Expo Router is mounted
 		if (!rootNavigationState?.key) return;
 		if (isLoading) return;
-		console.log("Segments:", segments);
 
 		// Find out what route group the user is currently looking at
 		const inAuthGroup = segments[0] === "(auth_screens)";
 		const onProfileCompletion = segments[0] === "profile_completion";
 		const onRoot = segments[0] === undefined;
 
+		console.log("Auth Routing Check:", {
+			session,
+			user,
+			segments,
+		});
 		if (session && !user) {
 			// Logged in, no DB user -> Complete Profile
 			if (!onProfileCompletion) router.replace("/profile_completion");

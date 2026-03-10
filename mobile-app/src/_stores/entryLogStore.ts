@@ -15,7 +15,6 @@ export const useEntryLogStore = create<StoreProps>((set) => ({
 	entryLogsTotal: 0,
 	fetchLogs: async (query) => {
 		try {
-			console.log(query);
 			const params: Record<string, any> = {};
 			if (query.search) params.search = query.search;
 			if (query.memberId) params.memberId = query.memberId;

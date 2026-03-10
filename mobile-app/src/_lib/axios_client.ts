@@ -1,27 +1,26 @@
 import axios from "axios";
 import { supabase } from "./supabase";
+console.log("API Base URL:", process.env.EXPO_PUBLIC_DEV_BASE_URL); // DEBUGGING: Check if the env variable is loaded
 export const api = axios.create({
 	baseURL: process.env.EXPO_PUBLIC_DEV_BASE_URL,
 	timeout: 10000,
 });
 
+let currentAccessToken: string | null = null;
+
+// 2. Let Supabase update the variable automatically whenever auth changes
+supabase.auth.onAuthStateChange((_event, session) => {
+	currentAccessToken = session?.access_token || null;
+});
+
 api.interceptors.request.use(
 	async (config) => {
-		// 1. Get the session from Supabase
-		const {
-			data: { session },
-		} = await supabase.auth.getSession();
-
-		// 2. If session exists, attach the JWT
-		if (session?.access_token) {
-			config.headers.Authorization = `Bearer ${session.access_token}`;
+		if (currentAccessToken) {
+			config.headers.Authorization = `Bearer ${currentAccessToken}`;
 		}
-
 		return config;
 	},
-	(error) => {
-		return Promise.reject(error);
-	},
+	(error) => Promise.reject(error),
 );
 
 api.interceptors.response.use(
@@ -35,7 +34,7 @@ api.interceptors.response.use(
 				path: error.config.url,
 			});
 		} else if (error.request) {
-			// The request was made but no response was received
+			// The request was made but no response was receivedrecommends
 			console.error("🌐 NETWORK ERROR: No response received.");
 		} else {
 			// Something happened in setting up the request
