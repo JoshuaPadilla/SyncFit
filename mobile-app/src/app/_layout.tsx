@@ -1,9 +1,10 @@
+import GlobalLoadingScreen from "@/components/global_loading_screen";
 import { AuthProvider, useAuth } from "@/context/authContext";
 import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useRef, useState } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { useEffect } from "react";
+import { StyleSheet, View } from "react-native";
 import "./global.css";
 
 // Keep this here so it runs immediately
@@ -35,11 +36,6 @@ function RootLayoutNav() {
 		"Mont-ExtraBold": require("../../assets/fonts/Montserrat-ExtraBold.ttf"),
 	});
 
-	const fadeAnim = useRef(new Animated.Value(0)).current;
-	const scaleAnim = useRef(new Animated.Value(0.85)).current;
-
-	const [isInitialLoad, setIsInitialLoad] = useState(true);
-
 	useEffect(() => {
 		if (error) throw error;
 	}, [error]);
@@ -47,73 +43,32 @@ function RootLayoutNav() {
 	useEffect(() => {
 		if (loaded && !isLoading) {
 			SplashScreen.hideAsync();
-			setIsInitialLoad(false); // 2. Lock this to false once loaded
 		}
 	}, [loaded, isLoading]);
 
-	useEffect(() => {
-		// Fade + scale in, then gently pulse
-		Animated.sequence([
-			Animated.parallel([
-				Animated.timing(fadeAnim, {
-					toValue: 1,
-					duration: 600,
-					useNativeDriver: true,
-				}),
-				Animated.spring(scaleAnim, {
-					toValue: 1,
-					friction: 6,
-					tension: 80,
-					useNativeDriver: true,
-				}),
-			]),
-			Animated.loop(
-				Animated.sequence([
-					Animated.timing(scaleAnim, {
-						toValue: 1.06,
-						duration: 900,
-						useNativeDriver: true,
-					}),
-					Animated.timing(scaleAnim, {
-						toValue: 1,
-						duration: 900,
-						useNativeDriver: true,
-					}),
-				]),
-			),
-		]).start();
-	}, []);
+	return (
+		<View style={{ flex: 1 }}>
+			{/* 1. THE ROUTER: 
+              Always render <Slot /> so Expo Router can build the navigation tree safely.
+            */}
+			<Slot />
 
-	if (isInitialLoad) {
-		return (
-			<View style={styles.loadingContainer}>
-				<Animated.Image
-					source={require("../../assets/images/app_logo.png")}
-					style={[
-						styles.logo,
-						{
-							opacity: fadeAnim,
-							transform: [{ scale: scaleAnim }],
-						},
-					]}
-					resizeMode="contain"
-				/>
-			</View>
-		);
-	}
-
-	return <Slot />;
+			{/* 2. THE VISUAL GUARD: 
+              Overlay the loading screen whenever auth is fetching data.
+            */}
+			{isLoading && (
+				<View style={styles.loadingOverlay}>
+					<GlobalLoadingScreen />
+				</View>
+			)}
+		</View>
+	);
 }
 
 const styles = StyleSheet.create({
-	loadingContainer: {
-		flex: 1,
-		backgroundColor: "#0d2120",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	logo: {
-		width: 180,
-		height: 180,
+	loadingOverlay: {
+		...StyleSheet.absoluteFillObject, // Stretches over the entire screen
+		zIndex: 999, // Keeps it on top of all other screens
+		elevation: 999, // Required for Android z-index
 	},
 });

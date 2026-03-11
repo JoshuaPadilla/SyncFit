@@ -7,7 +7,8 @@ import { validateOnboardingStep } from "@/helpers/profile_completion_form_valida
 import { MembershipPlan } from "@/types/membership_plan";
 // import { MembershipPlan } from "@/types/membership_plan"; // Ensure this type matches the new JSON or use the interface below
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
+import * as Linking from "expo-linking";
+import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as WebBrowser from "expo-web-browser";
 import {
@@ -110,11 +111,34 @@ export default function MultiStepOnboarding() {
 		try {
 			setIsLoading(true);
 
+			const returneUrl = Linking.createURL("success_payment");
+
 			const url = await createCheckoutSession({
 				membershipPlanId: selectedPlan,
 			});
 
-			await WebBrowser.openBrowserAsync(url);
+			const result = await WebBrowser.openAuthSessionAsync(
+				url,
+				returneUrl, // Tells the browser what scheme to listen for to close itself
+			);
+
+			console.log("Result:", result);
+
+			if (result.type === "success") {
+				// Handle the successful redirect here!
+				if (result.url.includes("success_payment")) {
+					router.replace("/(auth_screens)/(user)/success_payment");
+				} else if (result.url.includes("failed_payment")) {
+					router.replace("/(auth_screens)/(user)/failed_payment");
+				}
+			} else if (result.type === "cancel") {
+				Alert.alert("Payment Cancelled", "You cancelled the payment.");
+			} else {
+				Alert.alert(
+					"Payment Failed",
+					"An error occurred during payment.",
+				);
+			}
 		} catch (error) {
 			Alert.alert("Error", "Could not complete registration.");
 		} finally {
@@ -367,7 +391,9 @@ export default function MultiStepOnboarding() {
 
 									{!loadingPlans && (
 										<CustomButton
-											isDisabled={!selectedPlan}
+											isDisabled={
+												!selectedPlan || isLoading
+											}
 											onPress={handleFinish}
 											isLoading={isLoading}
 											title="Pay and Complete"

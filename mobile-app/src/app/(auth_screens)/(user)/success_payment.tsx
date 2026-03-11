@@ -45,7 +45,7 @@ const PaymentSuccessScreen = () => {
 					className="items-center mb-12"
 				>
 					<Text className="text-text font-header-bold text-3xl mb-3 text-center">
-						Top Up Successful!
+						Payment Successful!
 					</Text>
 					<Text className="text-textDim font-body-reg text-base text-center px-4">
 						Your transaction was completed successfully. The funds

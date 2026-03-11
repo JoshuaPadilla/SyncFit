@@ -41,13 +41,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const completeOnboarding = () => setIsFirstTime(false);
 
 	const refreshUser = async () => {
-		console.log("Refreshing User...");
 		try {
 			const loggedUser = await fetchLoggedUser();
 			setUser(loggedUser);
 		} catch (error) {
 			setUser(null);
 			console.error("Refresh User Error:", error);
+		} finally {
 		}
 	};
 
@@ -79,7 +79,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	// 1. INITIALIZATION: Check Session AND Profile before unblocking UI
 	useEffect(() => {
 		const initAuth = async () => {
-			console.log("Initializing Auth...");
 			const hasOpened = await AsyncStorage.getItem("hasOpened");
 
 			if (hasOpened) {
@@ -129,15 +128,22 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		if (isLoading) return;
 
 		// Find out what route group the user is currently looking at
-		const inAuthGroup = segments[0] === "(auth_screens)";
-		const onProfileCompletion = segments[0] === "profile_completion";
+		const segs = segments as string[];
+		const inAuthGroup = segs[0] === "(auth_screens)";
+		const onProfileCompletion = segs.includes("profile_completion");
+
+		// Check if we are on a payment screen
+		const onPaymentResult =
+			segs.includes("success_payment") || segs.includes("failed_payment");
+
 		const onRoot = segments[0] === undefined;
 
-		console.log("Auth Routing Check:", {
-			session,
-			user,
-			segments,
-		});
+		// 🌟 THE FIX: If the user is on a payment result screen, halt all auto-routing.
+		// Let the success/failed screen handle its own logic and manual navigation later.
+		if (onPaymentResult) {
+			return;
+		}
+
 		if (session && !user) {
 			// Logged in, no DB user -> Complete Profile
 			if (!onProfileCompletion) router.replace("/profile_completion");
