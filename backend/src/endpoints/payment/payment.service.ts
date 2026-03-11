@@ -37,7 +37,7 @@ export class PaymentService {
 
     try {
       let successUrl =
-        'intent://success_payment/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end';
+        'intent://success_payment/#Intent;scheme=syncfit;package=com.joshua129.syncfit;end';
 
       const plan = await queryRunner.manager.findOne(MembershipPlan, {
         where: { id: createCheckoutDto.membershipPlanId },
@@ -113,7 +113,7 @@ export class PaymentService {
 
     try {
       let successUrl =
-        'intent://success_payment/#Intent;scheme=SyncFit;package=com.joshua129.syncfit;end';
+        'intent://success_payment/#Intent;scheme=syncfit;package=com.joshua129.syncfit;end';
 
       const url = 'https://api.paymongo.com/v1/checkout_sessions';
 
