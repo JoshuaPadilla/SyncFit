@@ -1,9 +1,6 @@
+import NotImplemented from "@/components/custom_components/not_implemented";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/authenticated/settings/")({
-	component: RouteComponent,
+component: () => <NotImplemented pageName="Settings" />,
 });
-
-function RouteComponent() {
-	return <div>Hello "/settings/"!</div>;
-}
