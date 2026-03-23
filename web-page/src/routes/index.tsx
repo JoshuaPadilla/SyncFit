@@ -70,7 +70,7 @@ export default function Home() {
 	];
 
 	return (
-		<div className="min-h-screen bg-background text-foreground font-body-reg dark relative overflow-x-hidden">
+		<div className="min-h-screen bg-background text-foreground font-body-reg dark relative overflow-x-hidden px-8">
 			<div className="landing-grid-bg absolute inset-0 pointer-events-none" />
 
 			<header className="sticky top-0 z-30 bg-transparent">
