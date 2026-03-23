@@ -111,7 +111,7 @@ export default function Home() {
 			</header>
 
 			<main className="container mx-auto px-6 lg:px-8 pb-20 flex flex-col gap-16 relative z-10">
-				<section className="lg:pt-16 grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-stretch lg:min-h-[calc(100vh-96px)]">
+				<section className="lg:pt-16 grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-stretch">
 					<div className="flex flex-col gap-7 reveal-up">
 						<div className="w-fit flex items-center gap-2 rounded-full border border-border/30 px-4 py-2 text-primary font-body-med text-xs tracking-[0.14em] uppercase">
 							<Activity className="w-4 h-4" />
@@ -160,8 +160,8 @@ export default function Home() {
 						</div>
 					</div>
 
-					<div className="relative rounded-3xl border border-border/20 bg-card/50 overflow-hidden min-h-[320px] lg:min-h-[560px] h-full shadow-[0_30px_80px_-35px_rgba(0,240,197,0.45)] reveal-up">
-						<div className="absolute inset-0 bg-gradient-to-tr from-primary/15 via-transparent to-transparent" />
+					<div className="relative rounded-3xl border border-border/20 bg-card/50 overflow-hidden h-[90%] min-h-80 shadow-[0_30px_80px_-35px_rgba(0,240,197,0.45)] reveal-up">
+						<div className="absolute inset-0 bg-linear-to-tr from-primary/15 via-transparent to-transparent" />
 						<img
 							src={hero_image}
 							alt="SyncFit dashboard preview"
@@ -173,7 +173,7 @@ export default function Home() {
 							</p>
 							<p className="text-xl font-header-bold">1,248</p>
 						</div>
-						<div className="absolute bottom-4 right-4 rounded-xl border border-border/30 bg-background/85 backdrop-blur px-4 py-3 max-w-[190px]">
+						<div className="absolute bottom-4 right-4 rounded-xl border border-border/30 bg-background/85 backdrop-blur px-4 py-3 max-w-47.5">
 							<p className="text-[11px] text-muted-foreground mb-1">
 								Payment Recovery
 							</p>
@@ -375,7 +375,7 @@ export default function Home() {
 				</section>
 
 				<section className="rounded-3xl border border-border/20 bg-card/70 p-8 md:p-12 text-center relative overflow-hidden">
-					<div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[380px] h-[380px] rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+					<div className="absolute -top-24 left-1/2 -translate-x-1/2 w-95 h-95 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
 					<p className="text-primary text-xs font-body-med tracking-[0.14em] uppercase mb-3 relative z-10">
 						Ready to Elevate Operations
 					</p>
