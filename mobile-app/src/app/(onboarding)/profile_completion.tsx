@@ -61,9 +61,9 @@ export default function MultiStepOnboarding() {
 	// Unified Form State
 	const [step, setStep] = useState(stepParam ? Number(stepParam) : 1); // 1: Profile, 2: Membership
 	const [form, setForm] = useState({
-		firstName: "Joshua",
-		lastName: "Padilla",
-		phoneNumber: "9354872804",
+		firstName: "",
+		lastName: "",
+		phoneNumber: "",
 	});
 
 	// Actions
@@ -93,7 +93,7 @@ export default function MultiStepOnboarding() {
 
 			// 4. Save the valid, formatted data to state
 			setForm(formToValidate);
-			await createUser(form);
+			await createUser(formToValidate);
 
 			// 5. Proceed
 			LayoutAnimation.configureNext(
@@ -160,11 +160,14 @@ export default function MultiStepOnboarding() {
 			try {
 				const data = await fetchPlans();
 
-				if (isMounted && data) {
-					setPlans(data);
+				if (isMounted) {
+					setPlans(Array.isArray(data) ? data : []);
 				}
 			} catch (error) {
 				console.error("Failed to fetch plans", error);
+				if (isMounted) {
+					setPlans([]);
+				}
 			} finally {
 				if (isMounted) setLoadingPlans(false);
 			}

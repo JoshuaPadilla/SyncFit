@@ -1,8 +1,20 @@
 import axios from "axios";
 import { supabase } from "./supabase";
-console.log("API Base URL:", process.env.EXPO_PUBLIC_DEV_BASE_URL); // DEBUGGING: Check if the env variable is loaded
+
+const apiBaseUrl =
+	process.env.EXPO_PUBLIC_DEV_BASE_URL ||
+	process.env.EXPO_PUBLIC_PROD_BASE_URL;
+
+if (!apiBaseUrl) {
+	console.error(
+		"API Base URL is not defined. Set EXPO_PUBLIC_DEV_BASE_URL or EXPO_PUBLIC_PROD_BASE_URL in .env.",
+	);
+}
+
+console.log("API Base URL:", apiBaseUrl);
+
 export const api = axios.create({
-	baseURL: process.env.EXPO_PUBLIC_DEV_BASE_URL,
+	baseURL: apiBaseUrl,
 	timeout: 10000,
 });
 

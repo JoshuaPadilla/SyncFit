@@ -1,25 +1,27 @@
+import hero_image from "@/assets/images/hero_picture.jpg";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import {
 	Activity,
+	ArrowRight,
+	BadgeCheck,
+	BarChart3,
 	CheckCircle2,
 	CreditCard,
 	Fingerprint,
-	Heart,
+	LockKeyhole,
 	MonitorSmartphone,
-	Play,
-	Share2,
+	PlayCircle,
 	Star,
-	Wallet,
+	WalletCards,
 } from "lucide-react";
 import home_log from "../../public/home_logo.png";
 
 export const Route = createFileRoute("/")({
 	component: Home,
 	beforeLoad: ({ context }) => {
-		// If the user is ALREADY logged in, send them to the dashboard/overview
 		if (context.auth.session) {
 			throw redirect({
-				to: "/authenticated/overview", // Adjust this to your default landing page
+				to: "/authenticated/overview",
 			});
 		}
 	},
@@ -27,348 +29,390 @@ export const Route = createFileRoute("/")({
 
 export default function Home() {
 	const navigate = useNavigate();
+
+	const featureCards = [
+		{
+			icon: Fingerprint,
+			title: "Secure RFID Entry",
+			description:
+				"Grant access in milliseconds and prevent unauthorized entry with member-level credentials.",
+		},
+		{
+			icon: Activity,
+			title: "Live Occupancy Tracking",
+			description:
+				"See real-time check-ins, active members, and peak-hour trends directly from one dashboard.",
+		},
+		{
+			icon: WalletCards,
+			title: "Automated Payments",
+			description:
+				"Handle recurring billing and failed payment recovery without manual follow-ups.",
+		},
+		{
+			icon: MonitorSmartphone,
+			title: "Remote Operations",
+			description:
+				"Open or lock access points remotely and manage your gym from any connected device.",
+		},
+		{
+			icon: BarChart3,
+			title: "Actionable Insights",
+			description:
+				"Measure retention, attendance consistency, and revenue trends with clear visual analytics.",
+		},
+		{
+			icon: LockKeyhole,
+			title: "Audit-Ready Logs",
+			description:
+				"Keep complete entry records for compliance, investigations, and operational transparency.",
+		},
+	];
+
 	return (
-		<div className="min-h-screen bg-background text-foreground font-body-reg dark">
-			<div className="flex items-center justify-between px-8 py-6 border-b border-border/10">
-				<img
-					src={home_log}
-					alt="SyncFit System Logo"
-					className="w-40 h-auto object-contain"
-				/>
+		<div className="min-h-screen bg-background text-foreground font-body-reg dark relative overflow-x-hidden">
+			<div className="landing-grid-bg absolute inset-0 pointer-events-none" />
 
-				<div className="flex items-center gap-6">
-					<button
-						className="text-sm font-body-med hover:text-primary transition-colors"
-						onClick={() => navigate({ to: "/login" })}
-					>
-						Login
-					</button>
-					<button className="bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-sm font-body-bold hover:opacity-90 transition-opacity">
-						Get Started
-					</button>
+			<header className="sticky top-0 z-30 bg-transparent">
+				<div className="container mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
+					<img
+						src={home_log}
+						alt="SyncFit System Logo"
+						className="w-36 h-auto object-contain"
+					/>
+
+					<div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
+						<span className="hover:text-foreground transition-colors cursor-default">
+							Features
+						</span>
+						<span className="hover:text-foreground transition-colors cursor-default">
+							Insights
+						</span>
+						<span className="hover:text-foreground transition-colors cursor-default">
+							Pricing
+						</span>
+					</div>
+
+					<div className="flex items-center gap-3">
+						<button
+							className="text-sm font-body-med hover:text-primary transition-colors px-3 py-2"
+							onClick={() => navigate({ to: "/login" })}
+						>
+							Login
+						</button>
+						<button
+							onClick={() => navigate({ to: "/login" })}
+							className="bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-sm font-body-bold hover:opacity-90 transition-opacity"
+						>
+							Start Free
+						</button>
+					</div>
 				</div>
-			</div>
+			</header>
 
-			<main className="container mx-auto px-8 pt-20 pb-16 flex flex-col gap-32">
-				<section className="grid lg:grid-cols-2 gap-12 items-center">
-					<div className="flex flex-col gap-6">
-						<div className="flex items-center gap-2 text-primary font-body-med text-sm tracking-wide uppercase">
+			<main className="container mx-auto px-6 lg:px-8 pb-20 flex flex-col gap-16 relative z-10">
+				<section className="lg:pt-16 grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-stretch lg:min-h-[calc(100vh-96px)]">
+					<div className="flex flex-col gap-7 reveal-up">
+						<div className="w-fit flex items-center gap-2 rounded-full border border-border/30 px-4 py-2 text-primary font-body-med text-xs tracking-[0.14em] uppercase">
 							<Activity className="w-4 h-4" />
-							<span>Next-Gen Tech</span>
+							<span>Built for Modern Gyms</span>
 						</div>
-						<h1 className="text-5xl lg:text-7xl font-header-extrabold leading-tight tracking-tighter">
-							THE FUTURE OF <br />
-							<span className="text-primary">GYM ACCESS</span>
+						<h1 className="text-4xl md:text-6xl lg:text-7xl font-header-extrabold leading-[1.02] tracking-tighter">
+							Professional Gym Operations,
+							<span className="text-primary block mt-2">
+								From Entry to Payment
+							</span>
 						</h1>
-						<p className="text-muted-foreground text-lg max-w-xl leading-relaxed">
-							Revolutionize your gym management with our
-							cutting-edge RFID access control, MQTT integration,
-							and unified membership platform
+						<p className="text-muted-foreground text-base md:text-lg max-w-xl leading-relaxed">
+							SyncFit combines RFID access control, live
+							occupancy, member lifecycle automation, and billing
+							into one reliable platform that helps gyms run
+							smoother and grow faster.
 						</p>
-						<div className="flex items-center gap-4 pt-4">
-							<button className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-body-bold hover:opacity-90 transition-opacity">
-								Get Started
+
+						<div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
+							<button
+								onClick={() => navigate({ to: "/login" })}
+								className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-body-bold hover:opacity-90 transition-opacity"
+							>
+								Start Free Trial
+								<ArrowRight className="w-4 h-4" />
 							</button>
-							<button className="flex items-center gap-2 px-6 py-3 rounded-full border border-border/50 font-body-bold hover:bg-card transition-colors">
-								<Play className="w-4 h-4 text-primary" />
+							<button className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border/40 font-body-bold hover:bg-card transition-colors">
+								<PlayCircle className="w-4 h-4 text-primary" />
 								Watch Demo
 							</button>
 						</div>
-						<div className="flex items-center gap-4 pt-8">
-							<div className="flex -space-x-3">
-								<div className="w-10 h-10 rounded-full bg-card border-2 border-background" />
-								<div className="w-10 h-10 rounded-full bg-card border-2 border-background" />
-								<div className="w-10 h-10 rounded-full bg-card border-2 border-background" />
-							</div>
-							<span className="text-sm text-muted-foreground font-body-med">
-								Trusted by 500+ Gyms
+
+						<div className="pt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+							<span className="inline-flex items-center gap-1.5">
+								<BadgeCheck className="w-3.5 h-3.5 text-primary" />
+								99.9% service uptime
+							</span>
+							<span className="inline-flex items-center gap-1.5">
+								<BadgeCheck className="w-3.5 h-3.5 text-primary" />
+								Sub-second access validation
+							</span>
+							<span className="inline-flex items-center gap-1.5">
+								<BadgeCheck className="w-3.5 h-3.5 text-primary" />
+								Works with your existing workflow
 							</span>
 						</div>
 					</div>
-					<div className="relative aspect-[4/3] rounded-2xl bg-card border border-border/10 overflow-hidden flex items-center justify-center">
-						<div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent" />
-						<div className="text-muted-foreground">
-							Replace with Hardware Image
+
+					<div className="relative rounded-3xl border border-border/20 bg-card/50 overflow-hidden min-h-[320px] lg:min-h-[560px] h-full shadow-[0_30px_80px_-35px_rgba(0,240,197,0.45)] reveal-up">
+						<div className="absolute inset-0 bg-gradient-to-tr from-primary/15 via-transparent to-transparent" />
+						<img
+							src={hero_image}
+							alt="SyncFit dashboard preview"
+							className="absolute inset-0 w-full h-full object-cover"
+						/>
+						<div className="absolute top-4 left-4 rounded-xl border border-border/30 bg-background/85 backdrop-blur px-4 py-3">
+							<p className="text-[11px] text-muted-foreground">
+								Today&apos;s Check-ins
+							</p>
+							<p className="text-xl font-header-bold">1,248</p>
+						</div>
+						<div className="absolute bottom-4 right-4 rounded-xl border border-border/30 bg-background/85 backdrop-blur px-4 py-3 max-w-[190px]">
+							<p className="text-[11px] text-muted-foreground mb-1">
+								Payment Recovery
+							</p>
+							<p className="text-sm leading-snug">
+								+18% collections this month
+							</p>
 						</div>
 					</div>
 				</section>
 
-				<section className="grid grid-cols-2 md:grid-cols-4 gap-8 py-8 border-y border-border/10">
-					<div className="flex flex-col gap-2 text-center md:text-left">
-						<h3 className="text-4xl font-header-bold tracking-tight">
-							99.9%
-						</h3>
-						<p className="text-sm text-muted-foreground">
-							Uptime Reliability
-						</p>
+				<section className="flex flex-wrap items-center gap-3 md:gap-4 border-y border-border/20 py-6 text-xs md:text-sm text-muted-foreground">
+					<span className="uppercase tracking-[0.14em] text-primary font-body-med mr-2">
+						Trusted by teams running
+					</span>
+					<div className="rounded-full border border-border/30 px-4 py-2">
+						CrossFit Boxes
 					</div>
-					<div className="flex flex-col gap-2 text-center md:text-left">
-						<h3 className="text-4xl font-header-bold tracking-tight">
-							&lt;0.5s
-						</h3>
-						<p className="text-sm text-muted-foreground">
-							Access Speed
-						</p>
+					<div className="rounded-full border border-border/30 px-4 py-2">
+						Strength Studios
 					</div>
-					<div className="flex flex-col gap-2 text-center md:text-left">
-						<h3 className="text-4xl font-header-bold tracking-tight">
-							50k+
-						</h3>
-						<p className="text-sm text-muted-foreground">
-							Daily Check-ins
-						</p>
+					<div className="rounded-full border border-border/30 px-4 py-2">
+						Boutique Gyms
 					</div>
-					<div className="flex flex-col gap-2 text-center md:text-left">
-						<h3 className="text-4xl font-header-bold tracking-tight">
-							24/7
-						</h3>
-						<p className="text-sm text-muted-foreground">Support</p>
+					<div className="rounded-full border border-border/30 px-4 py-2">
+						Multi-branch Facilities
 					</div>
 				</section>
 
-				<section className="flex flex-col gap-12">
-					<div className="flex flex-col gap-4 max-w-2xl">
-						<span className="text-primary font-body-med text-sm tracking-wide uppercase">
-							Why Choose Smart Gym
+				<section className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+					<div className="rounded-2xl bg-card/60 border border-border/20 p-5">
+						<p className="text-3xl font-header-bold">99.9%</p>
+						<p className="text-sm text-muted-foreground mt-1">
+							Uptime reliability
+						</p>
+					</div>
+					<div className="rounded-2xl bg-card/60 border border-border/20 p-5">
+						<p className="text-3xl font-header-bold">&lt; 0.5s</p>
+						<p className="text-sm text-muted-foreground mt-1">
+							Door validation speed
+						</p>
+					</div>
+					<div className="rounded-2xl bg-card/60 border border-border/20 p-5">
+						<p className="text-3xl font-header-bold">50k+</p>
+						<p className="text-sm text-muted-foreground mt-1">
+							Daily access logs processed
+						</p>
+					</div>
+					<div className="rounded-2xl bg-card/60 border border-border/20 p-5">
+						<p className="text-3xl font-header-bold">24/7</p>
+						<p className="text-sm text-muted-foreground mt-1">
+							System monitoring support
+						</p>
+					</div>
+				</section>
+
+				<section className="flex flex-col gap-10" id="features">
+					<div className="max-w-2xl flex flex-col gap-4">
+						<span className="text-primary font-body-med text-sm tracking-[0.14em] uppercase">
+							Everything in One Platform
 						</span>
 						<h2 className="text-4xl font-header-bold tracking-tight">
-							Smart Access Control
+							Built to Run Operations, Not Just Open Doors
 						</h2>
 						<p className="text-muted-foreground leading-relaxed">
-							Secure and automated entry management using advanced
-							RFID and MQTT technology designed for modern fitness
-							centers
+							Structured like top SaaS landing pages: clear value,
+							proof of reliability, and direct action paths.
+							SyncFit is designed to be immediately understandable
+							for owners and operators.
 						</p>
 					</div>
-					<div className="grid md:grid-cols-3 gap-6">
-						<div className="bg-card p-8 rounded-2xl border border-border/10 flex flex-col gap-4">
-							<Fingerprint className="w-8 h-8 text-primary" />
-							<h4 className="text-xl font-header-semibold">
-								RFID Integration
-							</h4>
-							<p className="text-sm text-muted-foreground leading-relaxed">
-								Keyless entry with keycards or fobs. Assign
-								unique IDs to members instantly
-							</p>
-						</div>
-						<div className="bg-card p-8 rounded-2xl border border-border/10 flex flex-col gap-4">
-							<Activity className="w-8 h-8 text-primary" />
-							<h4 className="text-xl font-header-semibold">
-								Real-time Monitoring
-							</h4>
-							<p className="text-sm text-muted-foreground leading-relaxed">
-								Monitor gym occupancy, peak hours, and access
-								logs instantly from your dashboard
-							</p>
-						</div>
-						<div className="bg-card p-8 rounded-2xl border border-border/10 flex flex-col gap-4">
-							<MonitorSmartphone className="w-8 h-8 text-primary" />
-							<h4 className="text-xl font-header-semibold">
-								Remote Management
-							</h4>
-							<p className="text-sm text-muted-foreground leading-relaxed">
-								Control turnstiles from anywhere. Lock or unlock
-								doors remotely via the cloud
-							</p>
-						</div>
+
+					<div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+						{featureCards.map((feature) => {
+							const Icon = feature.icon;
+							return (
+								<div
+									key={feature.title}
+									className="bg-card/60 p-7 rounded-2xl border border-border/20 flex flex-col gap-4 hover:border-primary/40 hover:-translate-y-0.5 transition-all"
+								>
+									<Icon className="w-7 h-7 text-primary" />
+									<h4 className="text-lg font-header-semibold leading-snug">
+										{feature.title}
+									</h4>
+									<p className="text-sm text-muted-foreground leading-relaxed">
+										{feature.description}
+									</p>
+								</div>
+							);
+						})}
 					</div>
 				</section>
 
-				<section className="grid lg:grid-cols-2 gap-16 items-center">
-					<div className="flex flex-col gap-6">
-						<span className="text-primary font-body-med text-sm tracking-wide uppercase">
-							Drive Bus. Growth
+				<section className="grid lg:grid-cols-2 gap-10 items-start">
+					<div className="rounded-3xl bg-card/60 border border-border/20 p-8 md:p-10">
+						<span className="text-primary font-body-med text-xs tracking-[0.14em] uppercase">
+							How It Works
 						</span>
-						<h2 className="text-4xl font-header-bold tracking-tight">
-							Simple Payments & Billing
-						</h2>
-						<p className="text-muted-foreground leading-relaxed mb-4">
-							Integrated payment solutions for hassle-free
-							membership renewals. Stop chasing payments and let
-							the system handle it automatically
-						</p>
+						<h3 className="text-3xl md:text-4xl font-header-bold tracking-tight mt-3 mb-8">
+							Launch in 3 Simple Steps
+						</h3>
 
-						<div className="flex flex-col gap-6">
+						<div className="space-y-6">
 							<div className="flex gap-4">
-								<CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
+								<div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-body-bold grid place-content-center shrink-0">
+									1
+								</div>
 								<div>
-									<h5 className="font-header-semibold mb-1">
-										Automated Billing
-									</h5>
-									<p className="text-sm text-muted-foreground">
-										Recurring payments made easy for monthly
-										or yearly memberships
+									<p className="font-header-semibold">
+										Connect your access hardware
+									</p>
+									<p className="text-sm text-muted-foreground mt-1">
+										Pair readers and turnstiles in minutes
+										with guided setup.
 									</p>
 								</div>
 							</div>
 							<div className="flex gap-4">
-								<CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
+								<div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-body-bold grid place-content-center shrink-0">
+									2
+								</div>
 								<div>
-									<h5 className="font-header-semibold mb-1">
-										Multiple Gateways
-									</h5>
-									<p className="text-sm text-muted-foreground">
-										Support for PayMongo, GCash, GrabPay,
-										and major Credit Cards
+									<p className="font-header-semibold">
+										Import members and plans
+									</p>
+									<p className="text-sm text-muted-foreground mt-1">
+										Bring existing records, configure
+										memberships, and automate renewals.
+									</p>
+								</div>
+							</div>
+							<div className="flex gap-4">
+								<div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-body-bold grid place-content-center shrink-0">
+									3
+								</div>
+								<div>
+									<p className="font-header-semibold">
+										Go live with full visibility
+									</p>
+									<p className="text-sm text-muted-foreground mt-1">
+										Track entries, alerts, and billing
+										health from one modern dashboard.
 									</p>
 								</div>
 							</div>
 						</div>
-
-						<button className="mt-4 w-fit flex items-center gap-2 px-6 py-3 rounded-full bg-card border border-border/10 font-body-med hover:border-primary transition-colors">
-							View Payment Options
-						</button>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4">
-						<div className="flex flex-col gap-4">
-							<div className="bg-card p-6 rounded-2xl border border-border/10 aspect-square flex flex-col justify-between">
-								<CreditCard className="w-8 h-8 text-primary" />
-								<div>
-									<h6 className="font-header-semibold text-lg">
-										Credit Card
-									</h6>
-									<p className="text-xs text-muted-foreground">
-										Safe & secure payments
-									</p>
-								</div>
-							</div>
-							<div className="bg-card rounded-2xl border border-border/10 aspect-square overflow-hidden relative">
-								<div className="absolute inset-0 bg-muted/50" />
-								<div className="absolute bottom-4 left-4">
-									<h6 className="font-header-semibold text-lg">
-										E-Wallets
-									</h6>
-									<p className="text-xs text-muted-foreground">
-										GCash & PayMongo
-									</p>
-								</div>
-							</div>
+					<div className="space-y-5">
+						<div className="rounded-3xl bg-card/60 border border-border/20 p-7">
+							<CreditCard className="w-7 h-7 text-primary mb-3" />
+							<h4 className="text-2xl font-header-semibold mb-2">
+								Payment Operations that Scale
+							</h4>
+							<p className="text-sm text-muted-foreground leading-relaxed mb-5">
+								From card payments to local wallets, keep
+								collections smooth and reduce delinquent
+								memberships.
+							</p>
+							<ul className="space-y-3">
+								<li className="flex gap-3 text-sm">
+									<CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+									<span>
+										Automated recurring invoices and
+										reminders
+									</span>
+								</li>
+								<li className="flex gap-3 text-sm">
+									<CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+									<span>
+										Multi-gateway support including cards
+										and e-wallets
+									</span>
+								</li>
+								<li className="flex gap-3 text-sm">
+									<CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+									<span>
+										Revenue and churn indicators updated in
+										real-time
+									</span>
+								</li>
+							</ul>
 						</div>
-						<div className="bg-card rounded-2xl border border-border/10 flex flex-col overflow-hidden">
-							<div className="h-48 bg-muted/20 flex items-center justify-center border-b border-border/10">
-								<div className="w-32 h-24 bg-background rounded-lg shadow-lg border border-border/10 flex flex-col p-2 gap-2">
-									<div className="h-2 w-16 bg-muted rounded" />
-									<div className="flex gap-2">
-										<div className="h-8 w-8 bg-primary/20 rounded-full" />
-										<div className="h-8 flex-1 bg-muted rounded" />
-									</div>
-								</div>
-							</div>
-							<div className="p-6">
-								<Wallet className="w-8 h-8 text-primary mb-4" />
-								<h6 className="font-header-semibold text-lg">
-									Dashboards
-								</h6>
-								<p className="text-xs text-muted-foreground">
-									Track all transactions
-								</p>
+
+						<div className="rounded-2xl border border-border/20 p-6 bg-background/70">
+							<p className="text-xs text-primary uppercase tracking-[0.12em] mb-2">
+								Customer Highlight
+							</p>
+							<p className="text-sm text-muted-foreground leading-relaxed">
+								"After switching to SyncFit, our front desk
+								workload dropped by 40% and failed entries
+								became nearly zero."
+							</p>
+							<div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
+								<Star className="w-3.5 h-3.5 text-primary" />
+								<span>Operations Manager, MetroFit Club</span>
 							</div>
 						</div>
 					</div>
 				</section>
 
-				<section className="bg-card rounded-3xl p-12 text-center flex flex-col items-center gap-6 border border-border/10 relative overflow-hidden">
-					<div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
-					<h2 className="text-4xl font-header-bold tracking-tight">
-						Ready to Modernize Your Gym
-					</h2>
-					<p className="text-muted-foreground max-w-xl leading-relaxed">
-						Join hundreds of gym owners who have automated their
-						access control and increased revenue with Smart Gym
-						System
+				<section className="rounded-3xl border border-border/20 bg-card/70 p-8 md:p-12 text-center relative overflow-hidden">
+					<div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[380px] h-[380px] rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+					<p className="text-primary text-xs font-body-med tracking-[0.14em] uppercase mb-3 relative z-10">
+						Ready to Elevate Operations
 					</p>
-					<div className="flex items-center gap-4 mt-4">
-						<button className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-body-bold hover:opacity-90 transition-opacity">
-							Get Started Now
+					<h2 className="text-3xl md:text-5xl font-header-bold tracking-tight relative z-10">
+						Make Your Gym Feel World-Class
+					</h2>
+					<p className="text-muted-foreground max-w-2xl mx-auto mt-4 leading-relaxed relative z-10">
+						Launch a professional access and membership experience
+						your members trust from day one.
+					</p>
+					<div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 relative z-10">
+						<button
+							onClick={() => navigate({ to: "/login" })}
+							className="bg-primary text-primary-foreground px-8 py-3.5 rounded-full font-body-bold hover:opacity-90 transition-opacity"
+						>
+							Start Free Trial
 						</button>
-						<button className="px-8 py-4 rounded-full bg-background border border-border/50 font-body-bold hover:border-primary transition-colors">
-							Schedule Demo
+						<button className="px-8 py-3.5 rounded-full bg-background/80 border border-border/40 font-body-bold hover:border-primary transition-colors">
+							Book a Demo
 						</button>
 					</div>
 				</section>
 			</main>
 
-			<footer className="border-t border-border/10 py-12">
-				<div className="container mx-auto px-8 grid md:grid-cols-4 gap-12">
-					<div className="col-span-2 flex flex-col gap-6">
-						<div className="flex items-center gap-2">
-							<div className="w-6 h-6 bg-primary rounded-sm" />
-							<span className="font-header-bold text-xl tracking-tight">
-								Smart Gym System
-							</span>
-						</div>
-						<p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-							The most advanced access control and management
-							platform for modern fitness centers. Secure,
-							scalable, and simple
-						</p>
-						<div className="flex items-center gap-4 text-muted-foreground">
-							<Star className="w-5 h-5 hover:text-primary cursor-pointer" />
-							<Heart className="w-5 h-5 hover:text-primary cursor-pointer" />
-							<Share2 className="w-5 h-5 hover:text-primary cursor-pointer" />
-						</div>
+			<footer className="border-t border-border/20 py-10">
+				<div className="container mx-auto px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+					<div className="flex items-center gap-3 text-sm text-muted-foreground">
+						<img
+							src={home_log}
+							alt="SyncFit"
+							className="w-28 h-auto object-contain"
+						/>
+						<span>2026 SyncFit. All rights reserved.</span>
 					</div>
-					<div className="flex flex-col gap-4">
-						<h6 className="font-header-semibold">Product</h6>
-						<a
-							href="#features"
-							className="text-sm text-muted-foreground hover:text-primary"
-						>
-							Features
-						</a>
-						<a
-							href="#hardware"
-							className="text-sm text-muted-foreground hover:text-primary"
-						>
-							Hardware
-						</a>
-						<a
-							href="#pricing"
-							className="text-sm text-muted-foreground hover:text-primary"
-						>
-							Pricing
-						</a>
-						<a
-							href="#integrations"
-							className="text-sm text-muted-foreground hover:text-primary"
-						>
-							Integrations
-						</a>
-					</div>
-					<div className="flex flex-col gap-4">
-						<h6 className="font-header-semibold">Company</h6>
-						<a
-							href="#about"
-							className="text-sm text-muted-foreground hover:text-primary"
-						>
-							About
-						</a>
-						<a
-							href="#blog"
-							className="text-sm text-muted-foreground hover:text-primary"
-						>
-							Blog
-						</a>
-						<a
-							href="#careers"
-							className="text-sm text-muted-foreground hover:text-primary"
-						>
-							Careers
-						</a>
-						<a
-							href="#contact"
-							className="text-sm text-muted-foreground hover:text-primary"
-						>
-							Contact
-						</a>
-					</div>
-				</div>
-				<div className="container mx-auto px-8 mt-12 pt-8 border-t border-border/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-					<p>2026 Smart Gym Systems. All rights reserved.</p>
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 text-xs text-muted-foreground">
 						<div className="w-2 h-2 rounded-full bg-primary" />
-						<span>All Systems Operational</span>
+						<span>All systems operational</span>
 					</div>
 				</div>
 			</footer>

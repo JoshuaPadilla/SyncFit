@@ -14,9 +14,22 @@ export const useMembershipPlansStore = create<StoreProps>((set) => ({
 			set({ isLoading: true });
 			const res = await api.get("membership-plan");
 
-			return res.data;
+			const payload = res.data;
+
+			console.log("Membership Plans Payload:", payload);
+
+			if (Array.isArray(payload)) {
+				return payload;
+			}
+
+			if (Array.isArray(payload?.data)) {
+				return payload.data;
+			}
+
+			return [];
 		} catch (error) {
 			console.log(error);
+			return [];
 		} finally {
 			set({ isLoading: false });
 		}
