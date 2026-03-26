@@ -18,7 +18,13 @@ const config = defineConfig({
 		viteReact(),
 		VitePWA({
 			registerType: "autoUpdate",
-			includeAssets: ["web_logo.png", "home_logo.png"],
+			includeAssets: [
+				"web_logo.png",
+				"home_logo.png",
+				"icons/icon-192.png",
+				"icons/icon-512.png",
+				"icons/icon-maskable-512.png",
+			],
 			manifest: {
 				name: "SyncFit",
 				short_name: "SyncFit",
@@ -31,15 +37,20 @@ const config = defineConfig({
 				scope: "/",
 				icons: [
 					{
-						src: "/web_logo.png",
+						src: "/icons/icon-192.png",
 						type: "image/png",
-						sizes: "any",
+						sizes: "192x192",
 					},
 					{
-						src: "/home_logo.png",
+						src: "/icons/icon-512.png",
 						type: "image/png",
-						sizes: "any",
-						purpose: "any maskable",
+						sizes: "512x512",
+					},
+					{
+						src: "/icons/icon-maskable-512.png",
+						type: "image/png",
+						sizes: "512x512",
+						purpose: "maskable",
 					},
 				],
 			},
