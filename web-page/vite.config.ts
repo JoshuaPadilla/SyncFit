@@ -1,5 +1,6 @@
 import { devtools } from "@tanstack/devtools-vite";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
@@ -15,6 +16,57 @@ const config = defineConfig({
 		tailwindcss(),
 		tanstackRouter({ target: "react", autoCodeSplitting: true }),
 		viteReact(),
+		VitePWA({
+			registerType: "autoUpdate",
+			includeAssets: ["web_logo.png", "home_logo.png"],
+			manifest: {
+				name: "SyncFit",
+				short_name: "SyncFit",
+				description:
+					"SyncFit smart gym dashboard for members, entry logs, and operations.",
+				theme_color: "#020807",
+				background_color: "#020807",
+				display: "standalone",
+				start_url: "/",
+				scope: "/",
+				icons: [
+					{
+						src: "/web_logo.png",
+						type: "image/png",
+						sizes: "any",
+					},
+					{
+						src: "/home_logo.png",
+						type: "image/png",
+						sizes: "any",
+						purpose: "any maskable",
+					},
+				],
+			},
+			workbox: {
+				cleanupOutdatedCaches: true,
+				clientsClaim: true,
+				skipWaiting: true,
+				navigateFallback: "/index.html",
+				runtimeCaching: [
+					{
+						urlPattern:
+							/^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
+						handler: "CacheFirst",
+						options: {
+							cacheName: "google-fonts-cache",
+							expiration: {
+								maxEntries: 10,
+								maxAgeSeconds: 60 * 60 * 24 * 365,
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+				],
+			},
+		}),
 	],
 	resolve: {
 		alias: {

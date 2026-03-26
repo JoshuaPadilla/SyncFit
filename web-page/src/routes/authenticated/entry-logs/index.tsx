@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
 	Pagination,
 	PaginationContent,
+	PaginationEllipsis,
 	PaginationItem,
 	PaginationLink,
 	PaginationNext,
@@ -38,6 +39,7 @@ import { EntryStatus } from "@/enums/entry_status.enum";
 import { formatCurrency } from "@/helpers/currency_formatter";
 import { dateFormatter } from "@/helpers/date_formatter";
 import { formatTime } from "@/helpers/time_formatter";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { useEntryLogStore } from "@/stores/entryLogStore";
 import type { EntryLogQuery } from "@/types/query_types/entry_log_query";
@@ -70,6 +72,7 @@ export const Route = createFileRoute("/authenticated/entry-logs/")({
 });
 
 export default function RealTimeEntryLogs() {
+	const isMobile = useIsMobile();
 	const client = useMqtt();
 	const queryClient = useQueryClient();
 	const { insights } = Route.useLoaderData();
@@ -104,8 +107,6 @@ export default function RealTimeEntryLogs() {
 	const {
 		data: result = { data: [], total: 0, page: 1, totalPages: 1, limit: 5 },
 		isPending,
-		error,
-		isFetching,
 	} = useQuery({
 		queryKey: ["entry-logs", query],
 		queryFn: () => fetchAllLogs(query),
@@ -140,6 +141,43 @@ export default function RealTimeEntryLogs() {
 	const totalPages = result.totalPages || 1;
 	const totalItems = result.total || 0;
 	const limit = result.limit || 5;
+
+	const getVisiblePages = (): Array<number | "ellipsis"> => {
+		const maxDirectPages = isMobile ? 5 : 7;
+		if (totalPages <= maxDirectPages) {
+			return Array.from({ length: totalPages }, (_, i) => i + 1);
+		}
+
+		const siblingCount = isMobile ? 0 : 1;
+		let left = Math.max(2, currentPage - siblingCount);
+		let right = Math.min(totalPages - 1, currentPage + siblingCount);
+
+		if (currentPage <= 3) {
+			right = Math.max(right, isMobile ? 3 : 4);
+		}
+
+		if (currentPage >= totalPages - 2) {
+			left = Math.min(left, totalPages - (isMobile ? 2 : 3));
+		}
+
+		const pages: Array<number | "ellipsis"> = [1];
+		if (left > 2) {
+			pages.push("ellipsis");
+		}
+
+		for (let page = left; page <= right; page++) {
+			pages.push(page);
+		}
+
+		if (right < totalPages - 1) {
+			pages.push("ellipsis");
+		}
+
+		pages.push(totalPages);
+		return pages;
+	};
+
+	const visiblePages = getVisiblePages();
 
 	// Calculate the "Showing X to Y" values
 	const startItem = totalItems === 0 ? 0 : (currentPage - 1) * limit + 1;
@@ -200,12 +238,12 @@ export default function RealTimeEntryLogs() {
 	}, [client]);
 
 	return (
-		<div className="min-h-screen bg-background text-foreground p-8 flex flex-col gap-8 font-body-reg dark">
+		<div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8 flex flex-col gap-6 sm:gap-8 font-body-reg dark">
 			{/* --- Header Section --- */}
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 				<div>
-					<div className="flex items-center gap-3 mb-1">
-						<h1 className="text-3xl font-header-bold tracking-tight text-foreground">
+					<div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+						<h1 className="text-2xl sm:text-3xl font-header-bold tracking-tight text-foreground">
 							Real-time Entry Logs
 						</h1>
 						<Badge
@@ -234,21 +272,21 @@ export default function RealTimeEntryLogs() {
 
 			{/* --- Stats Grid --- */}
 
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 				{isnightsItems.map((stat, idx) => (
 					<Card key={idx} className="border-border shadow-none">
 						<CardContent>
 							<div className="flex items-center justify-between mb-2">
-								<p className="text-muted-foreground font-body-med text-sm">
+								<p className="text-muted-foreground font-body-med text-xs sm:text-sm">
 									{stat.label}
 								</p>
 								{/* Icon with dynamic color based on isDanger */}
 								<stat.icon
-									className={`h-6 w-6 ${stat.isDanger ? "text-destructive" : "text-muted-foreground"}`}
+									className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.isDanger ? "text-destructive" : "text-muted-foreground"}`}
 								/>
 							</div>
 							<p
-								className={`text-3xl font-header-bold ${
+								className={`text-2xl sm:text-3xl font-header-bold ${
 									stat.isDanger
 										? "text-destructive"
 										: "text-foreground"
@@ -264,10 +302,10 @@ export default function RealTimeEntryLogs() {
 			{/* --- Table Section --- */}
 			<Card className="flex flex-col overflow-hidden shadow-none border-border">
 				{/* Toolbar */}
-				<div className="px-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-					<div className="relative w-full max-w-md flex items-center">
+				<div className="px-4 py-3 border-b border-border flex flex-col gap-3">
+					<div className="relative w-full">
 						<Search
-							className="absolute left-3 text-muted-foreground"
+							className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
 							size={18}
 						/>
 						<Input
@@ -275,10 +313,10 @@ export default function RealTimeEntryLogs() {
 							placeholder="Search by member name or Card UID..."
 							value={searchInput}
 							onChange={(e) => setSearchInput(e.target.value)}
-							className="pl-10 font-body-reg bg-background/50 border-border h-10"
+							className="pl-10 font-body-reg bg-background/50 border-border h-10 w-full"
 						/>
 					</div>
-					<div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+					<div className="flex items-center gap-2 flex-wrap">
 						{/* Status Filter */}
 						<Select
 							value={statusFilter}
@@ -286,7 +324,7 @@ export default function RealTimeEntryLogs() {
 								setStatusFilter(value as EntryStatus | "all")
 							}
 						>
-							<SelectTrigger className="w-[160px] h-10 bg-background/50">
+							<SelectTrigger className="w-full sm:w-40 h-10 bg-background/50">
 								<SelectValue placeholder="Select status" />
 							</SelectTrigger>
 							<SelectContent>
@@ -310,7 +348,7 @@ export default function RealTimeEntryLogs() {
 										id="date"
 										variant={"outline"}
 										className={cn(
-											"w-[260px] justify-start text-left font-normal bg-background/50",
+											"w-full sm:w-65 justify-start text-left font-normal bg-background/50",
 											!dateRange &&
 												"text-muted-foreground",
 										)}
@@ -352,7 +390,7 @@ export default function RealTimeEntryLogs() {
 										onSelect={(range) =>
 											setDateRange(range)
 										}
-										numberOfMonths={2}
+										numberOfMonths={isMobile ? 1 : 2}
 									/>
 								</PopoverContent>
 							</Popover>
@@ -387,8 +425,119 @@ export default function RealTimeEntryLogs() {
 					</div>
 				</div>
 
+				{/* Mobile Cards */}
+				<div className="px-4 py-3 space-y-3 md:hidden">
+					{isPending ? (
+						Array.from({ length: 5 }).map((_, idx) => (
+							<div
+								key={`mobile-skeleton-${idx}`}
+								className="rounded-xl border border-border bg-card p-4 space-y-3"
+							>
+								<Skeleton className="h-4 w-40" />
+								<Skeleton className="h-4 w-28" />
+								<Skeleton className="h-4 w-full" />
+							</div>
+						))
+					) : result.data.length === 0 ? (
+						<div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+							No entry logs found.
+						</div>
+					) : (
+						result.data.map((log) => {
+							const isGranted = log.status === "granted";
+							return (
+								<div
+									key={`mobile-${log.id}`}
+									className="rounded-xl border border-border bg-card p-4"
+								>
+									<div className="flex items-start justify-between gap-3">
+										<div>
+											<p className="text-xs text-muted-foreground font-mono">
+												{dateFormatter(log.createdAt)}{" "}
+												{formatTime(log.createdAt)}
+											</p>
+											<div className="mt-1 flex items-center gap-2">
+												<Badge
+													variant="outline"
+													className={`font-body-bold tracking-wide uppercase ${
+														isGranted
+															? "bg-primary/10 text-primary border-primary/20"
+															: "bg-destructive/10 text-destructive border-destructive/20"
+													}`}
+												>
+													{log.status}
+												</Badge>
+											</div>
+										</div>
+										<Badge
+											variant="outline"
+											className="bg-background text-muted-foreground font-mono text-[11px] rounded font-normal"
+										>
+											{log.rfidUid}
+										</Badge>
+									</div>
+
+									<div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+										<div className="col-span-2">
+											<p className="text-muted-foreground">
+												Member
+											</p>
+											<div className="mt-1 flex items-center gap-2">
+												<Avatar className="h-7 w-7">
+													<AvatarFallback className="bg-secondary text-secondary-foreground font-header-bold text-[10px] uppercase">
+														{log.member
+															? `${log.member.user.firstName[0]}${log.member.user.lastName[0]}`
+															: "?"}
+													</AvatarFallback>
+												</Avatar>
+												<p className="text-foreground font-body-semibold">
+													{log.member
+														? `${log.member.user.firstName} ${log.member.user.lastName}`
+														: "Unknown Card"}
+												</p>
+											</div>
+										</div>
+										<div>
+											<p className="text-muted-foreground">
+												Membership
+											</p>
+											<p className="mt-1 text-foreground font-body-med">
+												{log.member?.membershipPlan?.type.toLocaleUpperCase() ||
+													"N/A"}
+											</p>
+										</div>
+										<div>
+											<p className="text-muted-foreground">
+												Deducted
+											</p>
+											<p
+												className={`mt-1 font-body-semibold ${log.deductedAmount ? "text-primary" : "text-muted-foreground"}`}
+											>
+												{log.deductedAmount
+													? `- ₱ ${formatCurrency(log.deductedAmount)}`
+													: "-"}
+											</p>
+										</div>
+										<div className="col-span-2">
+											<p className="text-muted-foreground">
+												Reason
+											</p>
+											<p
+												className={`mt-1 ${isGranted ? "text-muted-foreground" : "text-destructive font-body-med"}`}
+											>
+												{log.deniedReason ||
+													"Access Allowed"}
+											</p>
+										</div>
+									</div>
+								</div>
+							);
+						})
+					)}
+				</div>
+
 				{/* Table */}
-				<div className="overflow-x-auto px-4">
+				<div className="hidden md:block overflow-x-auto px-4">
 					<Table>
 						<TableHeader className="bg-background/20">
 							<TableRow className="border-border/50 hover:bg-transparent">
@@ -580,7 +729,7 @@ export default function RealTimeEntryLogs() {
 											{/* h-[73px] represents the approximate height of your standard populated row */}
 											<TableCell
 												colSpan={7}
-												className="h-[73px] py-4"
+												className="h-18.25 py-4"
 											></TableCell>
 										</TableRow>
 									))}
@@ -625,8 +774,16 @@ export default function RealTimeEntryLogs() {
 								/>
 							</PaginationItem>
 
-							{[...Array(totalPages)].map((_, idx) => {
-								const pageNum = idx + 1;
+							{visiblePages.map((item, idx) => {
+								if (item === "ellipsis") {
+									return (
+										<PaginationItem key={`ellipsis-${idx}`}>
+											<PaginationEllipsis />
+										</PaginationItem>
+									);
+								}
+
+								const pageNum = item;
 								return (
 									<PaginationItem key={pageNum}>
 										<PaginationLink

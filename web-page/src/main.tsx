@@ -1,9 +1,11 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { StrictMode, useEffect } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
+import { registerSW } from "virtual:pwa-register";
 
 // 1. Import your context and the generated route tree
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { OfflineFallback } from "./components/custom_components/offline_fallback";
 import { AuthProvider, useAuth } from "./context/auth_context";
 import { routeTree } from "./routeTree.gen";
 import { useEntryLogStore } from "./stores/entryLogStore";
@@ -31,6 +33,7 @@ declare module "@tanstack/react-router" {
 }
 
 const queryClient = new QueryClient();
+registerSW({ immediate: true });
 
 // 4. Create a component to wrap the Provider and pass context
 function dismissLoader() {
@@ -47,12 +50,30 @@ function App() {
 	const auth = useAuth();
 	const user = useUserStore();
 	const entry_log = useEntryLogStore();
+	const [isOnline, setIsOnline] = useState(() => navigator.onLine);
 
 	useEffect(() => {
-		if (!auth.isLoading) {
+		const handleOnline = () => setIsOnline(true);
+		const handleOffline = () => setIsOnline(false);
+
+		window.addEventListener("online", handleOnline);
+		window.addEventListener("offline", handleOffline);
+
+		return () => {
+			window.removeEventListener("online", handleOnline);
+			window.removeEventListener("offline", handleOffline);
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!auth.isLoading || !isOnline) {
 			dismissLoader();
 		}
-	}, [auth.isLoading]);
+	}, [auth.isLoading, isOnline]);
+
+	if (!isOnline) {
+		return <OfflineFallback onRetry={() => window.location.reload()} />;
+	}
 
 	if (auth.isLoading) {
 		return null;

@@ -21,6 +21,7 @@ import {
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuItem,
+	useSidebar,
 } from "@/components/ui/sidebar";
 // Import Dropdown components
 import {
@@ -77,6 +78,13 @@ const navGroups = [
 
 export function AppSidebar() {
 	const { user, signOut } = useAuth(); // Get live user and logout function
+	const { isMobile, setOpenMobile } = useSidebar();
+
+	const handleMobileNavClick = () => {
+		if (isMobile) {
+			setOpenMobile(false);
+		}
+	};
 
 	// Helper to get initials from name for AvatarFallback
 	const initials = user?.firstName
@@ -85,7 +93,7 @@ export function AppSidebar() {
 
 	return (
 		<Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground dark">
-			<SidebarHeader className="p-6">
+			<SidebarHeader className="p-4 sm:p-6">
 				<Link to="/" className="flex items-center gap-3">
 					<img
 						src={web_logo}
@@ -98,11 +106,12 @@ export function AppSidebar() {
 				</Link>
 			</SidebarHeader>
 
-			<SidebarContent className="px-4 pb-4 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+			<SidebarContent className="px-3 sm:px-4 pb-4 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 				<SidebarMenu className="mb-6">
 					<SidebarMenuItem>
 						<Link
 							to="/authenticated/overview"
+							onClick={handleMobileNavClick}
 							className="flex w-full items-center gap-3 rounded-lg p-3 text-sm font-medium transition-colors"
 							activeProps={{
 								className:
@@ -131,6 +140,7 @@ export function AppSidebar() {
 								<SidebarMenuItem key={item.title}>
 									<Link
 										to={item.url}
+										onClick={handleMobileNavClick}
 										className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors"
 										activeProps={{
 											className:
@@ -165,7 +175,7 @@ export function AppSidebar() {
 											</AvatarFallback>
 										</Avatar>
 										<div className="flex flex-col items-start text-sm">
-											<span className="font-semibold text-foreground truncate max-w-[120px]">
+											<span className="font-semibold text-foreground truncate max-w-30">
 												{user?.firstName}{" "}
 												{user?.lastName}
 											</span>

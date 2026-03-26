@@ -105,76 +105,80 @@ export default function Members() {
 	const rangeEnd = Math.min(currentPage * LIMIT, total);
 
 	return (
-		<div className="min-h-screen bg-background text-foreground p-8 font-body-reg dark">
-			<div className="flex justify-between items-start mb-8">
+		<div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8 font-body-reg dark">
+			<div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8">
 				<div>
-					<h1 className="text-3xl font-header-bold tracking-tight mb-2">
+					<h1 className="text-2xl sm:text-3xl font-header-bold tracking-tight mb-2">
 						Member Management
 					</h1>
 					<p className="text-muted-foreground text-sm">
 						Manage gym members, access rights, and billing details.
 					</p>
 				</div>
-				<button className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg flex items-center gap-2 font-body-med text-sm hover:opacity-90 transition-opacity">
+				<button className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 font-body-med text-sm hover:opacity-90 transition-opacity w-full sm:w-auto shrink-0">
 					<Plus className="w-4 h-4" />
 					Add New Member
 				</button>
 			</div>
 
-			<div className="flex items-center gap-4 mb-8">
-				<div className="relative flex-1 max-w-md">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-					<input
-						type="text"
-						value={searchInput}
-						onChange={(e) => setSearchInput(e.target.value)}
-						placeholder="Search by name, email, or RFID UID"
-						className="w-full bg-card border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-					/>
+			<div className="flex flex-col gap-3 mb-6 sm:mb-8">
+				<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+					<div className="relative flex-1 sm:max-w-md">
+						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+						<input
+							type="text"
+							value={searchInput}
+							onChange={(e) => setSearchInput(e.target.value)}
+							placeholder="Search by name, email, or RFID UID"
+							className="w-full bg-card border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						/>
+					</div>
+					<div className="flex items-center gap-3">
+						<select
+							value={activeType}
+							onChange={handleTypeChange}
+							className="flex-1 sm:flex-none bg-card border border-border text-muted-foreground hover:text-foreground rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+						>
+							<option value="all">All Plan Types</option>
+							<option value={MembershipType.ANNUALLY}>
+								Annually
+							</option>
+							<option value={MembershipType.MONTHLY}>
+								Monthly
+							</option>
+							<option value={MembershipType.PREPAID}>
+								Prepaid
+							</option>
+						</select>
+						<button className="p-2.5 bg-card border border-border rounded-lg text-muted-foreground hover:text-foreground shrink-0">
+							<Filter className="w-4 h-4" />
+						</button>
+					</div>
 				</div>
-
-				<div className="flex bg-card border border-border rounded-lg p-1">
-					{STATUS_TABS.map((tab) => {
-						const isActive = activeStatus === tab.value;
-						return (
-							<button
-								key={tab.value}
-								onClick={() => handleStatusTab(tab.value)}
-								className={`px-4 py-1.5 rounded-md text-sm font-body-med flex items-center gap-2 transition-colors ${
-									isActive
-										? "bg-secondary/50 text-primary"
-										: "text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								{tab.label}
-								{tab.value === "all" && isActive && (
-									<span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
-										{total}
-									</span>
-								)}
-							</button>
-						);
-					})}
-				</div>
-
-				<div className="ml-auto flex items-center gap-3">
-					{/* NEW: Membership Type Dropdown Filter */}
-					<select
-						value={activeType}
-						onChange={handleTypeChange}
-						className="bg-card border border-border text-muted-foreground hover:text-foreground rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
-					>
-						<option value="all">All Plan Types</option>
-						<option value={MembershipType.ANNUALLY}>
-							Annually
-						</option>
-						<option value={MembershipType.MONTHLY}>Monthly</option>
-						<option value={MembershipType.PREPAID}>Prepaid</option>
-					</select>
-
-					<button className="p-2.5 bg-card border border-border rounded-lg text-muted-foreground hover:text-foreground">
-						<Filter className="w-4 h-4" />
-					</button>
+				<div className="overflow-x-auto">
+					<div className="flex bg-card border border-border rounded-lg p-1 min-w-max">
+						{STATUS_TABS.map((tab) => {
+							const isActive = activeStatus === tab.value;
+							return (
+								<button
+									key={tab.value}
+									onClick={() => handleStatusTab(tab.value)}
+									className={`px-3 sm:px-4 py-1.5 rounded-md text-sm font-body-med flex items-center gap-2 transition-colors ${
+										isActive
+											? "bg-secondary/50 text-primary"
+											: "text-muted-foreground hover:text-foreground"
+									}`}
+								>
+									{tab.label}
+									{tab.value === "all" && isActive && (
+										<span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+											{total}
+										</span>
+									)}
+								</button>
+							);
+						})}
+					</div>
 				</div>
 			</div>
 
@@ -191,7 +195,7 @@ export default function Members() {
 					</div>
 				</div>
 
-				<div className="flex items-center justify-between px-6 py-4 border-t border-border">
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 border-t border-border gap-3">
 					<span className="text-sm text-muted-foreground">
 						{total === 0 ? (
 							"No members found"
