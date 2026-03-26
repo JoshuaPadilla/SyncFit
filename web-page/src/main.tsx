@@ -1,6 +1,7 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode, useEffect } from "react";
 import ReactDOM from "react-dom/client";
+import { registerSW } from "virtual:pwa-register";
 
 // 1. Import your context and the generated route tree
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -31,6 +32,7 @@ declare module "@tanstack/react-router" {
 }
 
 const queryClient = new QueryClient();
+registerSW({ immediate: true });
 
 // 4. Create a component to wrap the Provider and pass context
 function dismissLoader() {
