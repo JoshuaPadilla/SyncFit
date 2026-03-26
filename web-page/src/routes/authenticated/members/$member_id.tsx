@@ -78,14 +78,14 @@ export default function UserProfileScreen() {
 				onClose={handleOnCloseModal}
 				memberId={user!.id}
 			/>
-			<div className="min-h-screen bg-background text-foreground p-8 font-body-reg dark">
+			<div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8 font-body-reg dark">
 				<div className="max-w-7xl mx-auto space-y-6">
 					{/* --- HEADER SECTION --- */}
 					<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-						<div className="flex items-center gap-5">
+						<div className="flex items-center gap-4 sm:gap-5">
 							{/* Avatar */}
-							<div className="relative">
-								<div className="w-16 h-16 md:w-[84px] md:h-[84px] rounded-full bg-[#5b9a8a] flex items-center justify-center border-2 border-card overflow-hidden">
+							<div className="relative shrink-0">
+								<div className="w-14 h-14 sm:w-16 sm:h-16 md:w-[84px] md:h-[84px] rounded-full bg-[#5b9a8a] flex items-center justify-center border-2 border-card overflow-hidden">
 									{/* Fallback icon just in case, but styled to match the teal circle */}
 									<User size={44} className="text-white/80" />
 								</div>
@@ -93,17 +93,17 @@ export default function UserProfileScreen() {
 							</div>
 
 							{/* Name & ID */}
-							<div>
-								<div className="flex items-center gap-3">
-									<h1 className="text-2xl md:text-[32px] font-header-bold">
+							<div className="min-w-0">
+								<div className="flex flex-wrap items-center gap-2 sm:gap-3">
+									<h1 className="text-xl sm:text-2xl md:text-[32px] font-header-bold">
 										{user?.firstName} {user?.lastName}
 									</h1>
-									<span className="px-2 py-0.5 rounded-full bg-green-900/30 text-[#22c55e] text-[11px] font-body-bold flex items-center gap-1.5 border border-[#22c55e]/20 tracking-wide uppercase">
+									<span className="px-2 py-0.5 rounded-full bg-green-900/30 text-[#22c55e] text-[11px] font-body-bold flex items-center gap-1.5 border border-[#22c55e]/20 tracking-wide uppercase shrink-0">
 										<span className="w-1.5 h-1.5 rounded-full bg-[#22c55e]"></span>
 										Active
 									</span>
 								</div>
-								<p className="text-muted-foreground text-xs font-mono mt-1 opacity-60">
+								<p className="text-muted-foreground text-xs font-mono mt-1 opacity-60 truncate max-w-55 sm:max-w-none">
 									UUID: {user?.id}
 								</p>
 								<button className="flex items-center gap-1.5 text-sm text-foreground hover:text-foreground/80 transition-colors mt-2 font-body-med">
@@ -117,14 +117,14 @@ export default function UserProfileScreen() {
 						</div>
 
 						{/* Action Buttons */}
-						<div className="flex items-center gap-3">
-							<button className="bg-[#ff7b00] text-white px-6 py-2.5 rounded-full font-body-semibold transition-transform active:scale-95 shadow-[0_0_15px_rgba(255,123,0,0.25)] hover:bg-[#ff7b00]/90 text-sm">
+						<div className="flex flex-wrap items-center gap-2 sm:gap-3">
+							<button className="flex-1 sm:flex-none bg-[#ff7b00] text-white px-4 sm:px-6 py-2.5 rounded-full font-body-semibold transition-transform active:scale-95 shadow-[0_0_15px_rgba(255,123,0,0.25)] hover:bg-[#ff7b00]/90 text-sm">
 								Renew Membership
 							</button>
-							<button className="bg-white/5 border border-white/10 text-foreground px-6 py-2.5 rounded-full font-body-semibold hover:bg-white/10 transition-colors text-sm">
+							<button className="flex-1 sm:flex-none bg-white/5 border border-white/10 text-foreground px-4 sm:px-6 py-2.5 rounded-full font-body-semibold hover:bg-white/10 transition-colors text-sm">
 								Freeze Account
 							</button>
-							<button className="bg-white/5 border border-white/10 text-[#ef4444] p-2.5 rounded-full hover:bg-red-500/10 transition-colors">
+							<button className="bg-white/5 border border-white/10 text-[#ef4444] p-2.5 rounded-full hover:bg-red-500/10 transition-colors shrink-0">
 								<Ban size={20} />
 							</button>
 						</div>

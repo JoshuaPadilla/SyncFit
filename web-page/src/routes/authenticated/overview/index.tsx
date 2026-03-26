@@ -204,13 +204,13 @@ export default function OverviewDashboard() {
 	};
 
 	return (
-		<div className="min-h-screen bg-background text-foreground p-8 font-body-reg dark">
+		<div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8 font-body-reg dark">
 			{/* Header */}
-			<div className="mb-8">
+			<div className="mb-6 sm:mb-8">
 				<p className="text-muted-foreground text-sm mb-1">
 					{format(new Date(), "EEEE, MMMM d, yyyy")}
 				</p>
-				<h1 className="text-3xl font-header-bold tracking-tight mb-1">
+				<h1 className="text-2xl sm:text-3xl font-header-bold tracking-tight mb-1">
 					{greeting}, {user?.firstName ?? "Admin"}
 				</h1>
 				<p className="text-muted-foreground text-sm">
@@ -219,30 +219,30 @@ export default function OverviewDashboard() {
 			</div>
 
 			{/* Stat Cards */}
-			<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+			<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
 				{statCards.map((card) => {
 					const Icon = card.icon;
 					return (
 						<div
 							key={card.label}
-							className="bg-card border border-border rounded-xl p-5"
+							className="bg-card border border-border rounded-xl p-3 sm:p-5"
 						>
-							<div className="flex items-start justify-between mb-4">
+							<div className="flex items-start justify-between mb-3 sm:mb-4">
 								<span className="text-muted-foreground text-xs font-body-med uppercase tracking-wide leading-tight">
 									{card.label}
 								</span>
 								<div
-									className={`p-2 rounded-lg shrink-0 ${card.iconBg}`}
+									className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${card.iconBg}`}
 								>
 									<Icon
-										className={`w-4 h-4 ${card.iconColor}`}
+										className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${card.iconColor}`}
 									/>
 								</div>
 							</div>
 							{card.value == null ? (
-								<Skeleton className="h-8 w-16 mb-1" />
+								<Skeleton className="h-7 sm:h-8 w-14 sm:w-16 mb-1" />
 							) : (
-								<p className="text-3xl font-header-bold mb-1">
+								<p className="text-2xl sm:text-3xl font-header-bold mb-1">
 									{card.isString
 										? String(card.value)
 										: Number(card.value).toLocaleString()}
@@ -257,10 +257,10 @@ export default function OverviewDashboard() {
 			</div>
 
 			{/* Charts Row */}
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 sm:mb-8">
 				{/* Entry Activity — Area Chart */}
-				<div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
-					<div className="flex items-center justify-between mb-6">
+				<div className="lg:col-span-2 bg-card border border-border rounded-xl p-4 sm:p-6">
+					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
 						<div>
 							<h2 className="text-sm font-header-bold text-foreground">
 								Entry Activity
@@ -381,7 +381,7 @@ export default function OverviewDashboard() {
 				</div>
 
 				{/* Membership Status — Donut Chart */}
-				<div className="bg-card border border-border rounded-xl p-6">
+				<div className="bg-card border border-border rounded-xl p-4 sm:p-6">
 					<div className="mb-4">
 						<h2 className="text-sm font-header-bold text-foreground">
 							Membership Status
@@ -469,7 +469,7 @@ export default function OverviewDashboard() {
 
 			{/* Recent Activity */}
 			<div className="bg-card border border-border rounded-xl overflow-hidden">
-				<div className="px-6 py-5 border-b border-border flex items-center justify-between">
+				<div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border flex items-center justify-between">
 					<div>
 						<h2 className="text-sm font-header-bold text-foreground">
 							Recent Activity
@@ -485,7 +485,7 @@ export default function OverviewDashboard() {
 						Array.from({ length: 5 }).map((_, i) => (
 							<div
 								key={i}
-								className="px-6 py-4 flex items-center gap-4"
+								className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-4"
 							>
 								<Skeleton className="w-9 h-9 rounded-full" />
 								<div className="flex-1">
@@ -496,7 +496,7 @@ export default function OverviewDashboard() {
 							</div>
 						))
 					) : recentLogs.length === 0 ? (
-						<div className="px-6 py-10 text-center text-muted-foreground text-sm">
+						<div className="px-4 sm:px-6 py-10 text-center text-muted-foreground text-sm">
 							No recent activity found.
 						</div>
 					) : (
@@ -519,7 +519,7 @@ export default function OverviewDashboard() {
 							return (
 								<div
 									key={log.id}
-									className="px-6 py-4 flex items-center gap-4 hover:bg-secondary/20 transition-colors"
+									className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-4 hover:bg-secondary/20 transition-colors"
 								>
 									<Avatar className="w-9 h-9">
 										<AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
