@@ -13,9 +13,10 @@ import { Between, DataSource } from 'typeorm';
 @Injectable()
 export class RfidService implements OnModuleInit {
   private entryFee = 50; // Example fee for prepaid members
-  private registrationMode = false;
   private registrationUserId: string | null = null;
-  private registrationTimeout: NodeJS.Timeout | null = null;
+  private reassigningUserId: string | null = null;
+
+  private scanTimeout: NodeJS.Timeout | null = null;
 
   constructor(
     @Inject('MQTT_SERVICE') private client: ClientProxy,
@@ -26,14 +27,13 @@ export class RfidService implements OnModuleInit {
     await this.client.connect();
   }
 
-  async handleRfidTap(uid: string) {
+  async handleRfidScan(uid: string) {
     // ✅ If we are in registration mode
+
     if (this.registrationUserId) {
       try {
         await this.saveRfid(uid, this.registrationUserId);
       } catch (err) {
-        console.error('RFID Registration Failed:', err.message);
-
         this.client.emit(`rfid/registration/${this.registrationUserId}`, {
           uid: uid,
           status: 'error',
@@ -49,9 +49,9 @@ export class RfidService implements OnModuleInit {
       });
 
       // Clear timeout
-      if (this.registrationTimeout) {
-        clearTimeout(this.registrationTimeout);
-        this.registrationTimeout = null;
+      if (this.scanTimeout) {
+        clearTimeout(this.scanTimeout);
+        this.scanTimeout = null;
       }
 
       this.registrationUserId = null;
@@ -59,26 +59,53 @@ export class RfidService implements OnModuleInit {
       return { status: 'RFID Registered' };
     }
 
-    // Normal access check
+    if (this.reassigningUserId) {
+      try {
+        await this.saveRfid(uid, this.reassigningUserId);
+      } catch (err) {
+        this.client.emit(`rfid/reassignment/${this.reassigningUserId}`, {
+          uid: uid,
+          status: 'error',
+          message: err.message,
+        });
+        return;
+      }
+
+      this.client.emit(`rfid/reassignment/${this.reassigningUserId}`, {
+        uid: uid,
+        status: 'success',
+        message: 'RFID Reassigned Successfully',
+      });
+
+      // Clear timeout
+      if (this.scanTimeout) {
+        clearTimeout(this.scanTimeout);
+        this.scanTimeout = null;
+      }
+
+      this.reassigningUserId = null;
+
+      return { status: 'RFID Reassigned' };
+    }
+
     const isAllowed = await this.checkAccess(uid);
 
     if (isAllowed) {
-      this.client.emit('gym/door/command', 'unlock');
-      console.log(`Access granted for UID: ${uid}`);
+      this.client.emit('door/command', 'unlock');
     } else {
-      this.client.emit('gym/door/command', 'denied');
+      this.client.emit('door/command', 'denied');
     }
+    return;
   }
 
   async startRegistration(userId: string) {
-    if (this.registrationTimeout) {
-      clearTimeout(this.registrationTimeout);
+    if (this.scanTimeout) {
+      clearTimeout(this.scanTimeout);
     }
 
-    this.registrationMode = true;
     this.registrationUserId = userId;
 
-    this.registrationTimeout = setTimeout(() => {
+    this.scanTimeout = setTimeout(() => {
       this.client.emit(`rfid/registration/${userId}`, {
         uid: null,
         status: 'expired',
@@ -86,8 +113,7 @@ export class RfidService implements OnModuleInit {
       });
 
       this.registrationUserId = null;
-      this.registrationTimeout = null;
-      this.registrationMode = false;
+      this.scanTimeout = null;
 
       console.log(`Registration expired for user: ${userId}`);
     }, 30000); // Changed to 30s as per your comment (2000 is only 2 seconds)
@@ -95,13 +121,53 @@ export class RfidService implements OnModuleInit {
     return { status: 'Waiting for RFID tap...' };
   }
 
-  async cancelRegistration() {
-    if (this.registrationTimeout) {
-      clearTimeout(this.registrationTimeout);
-      this.registrationTimeout = null;
+  async startReassignment(userId: string) {
+    if (this.scanTimeout) {
+      clearTimeout(this.scanTimeout);
     }
-    this.registrationMode = false;
+
+    this.reassigningUserId = userId;
+
+    this.scanTimeout = setTimeout(() => {
+      this.client.emit(`rfid/reassignment/${userId}`, {
+        uid: null,
+        status: 'expired',
+        message: 'Reassignment mode expired',
+      });
+
+      this.reassigningUserId = null;
+      this.scanTimeout = null;
+
+      console.log(`Reassignment expired for user: ${userId}`);
+    }, 30000); // Changed to 30s as per your comment (2000 is only 2 seconds)
+
+    return { status: 'Waiting for RFID tap...' };
+  }
+
+  async cancelRegistration() {
+    if (this.scanTimeout) {
+      clearTimeout(this.scanTimeout);
+      this.scanTimeout = null;
+    }
     this.registrationUserId = null;
+  }
+
+  async cancelReassignment() {
+    if (this.scanTimeout) {
+      clearTimeout(this.scanTimeout);
+      this.scanTimeout = null;
+    }
+    this.reassigningUserId = null;
+  }
+
+  async resetRfid(userId: string) {
+    const memberRepo = this.dataSource.getRepository(Member);
+    const member = await memberRepo.update(
+      { user: { id: userId } },
+      { rfidUid: null },
+    );
+
+    return { status: 'RFID reset functionality not implemented yet' };
   }
 
   private async saveRfid(uid: string, userId: string) {
@@ -109,14 +175,26 @@ export class RfidService implements OnModuleInit {
 
     const existingMember = await memberRepo.findOne({
       where: { rfidUid: uid },
+      relations: {
+        user: true, // This triggers the JOIN
+      },
+      select: {
+        id: true, // Good practice to include the primary key of the main entity
+        rfidUid: true,
+        user: {
+          id: true, // Now this will work
+        },
+      },
     });
 
-    if (existingMember) {
+    if (existingMember && existingMember?.user?.id !== userId) {
       throw new Error('This RFID UID is already registered to another member.');
     }
+
     const member = await memberRepo.findOne({
       where: { user: { id: userId } },
     });
+
     if (member) {
       member.rfidUid = uid;
       await memberRepo.save(member);
@@ -127,6 +205,21 @@ export class RfidService implements OnModuleInit {
     // Use .transaction() to get rid of all the manual connect/commit/release code
     return await this.dataSource
       .transaction(async (manager) => {
+        if (!uid) {
+          const newLog = manager.create(EntryLog, {
+            rfidUid: uid,
+            status: EntryStatus.DENIED,
+            deniedReason: DeniedReason.UNKNOWN_CARD,
+            createdAt: new Date(),
+            entryTime: new Date(),
+          });
+          const savedEntryLog = await manager.save(newLog);
+
+          this.client.emit('door/newEntry', savedEntryLog);
+          console.log('First');
+          return false;
+        }
+
         const baseMember = await manager.findOne(Member, {
           where: { rfidUid: uid },
         });
@@ -140,8 +233,8 @@ export class RfidService implements OnModuleInit {
             entryTime: new Date(),
           });
           const savedEntryLog = await manager.save(newLog);
-          this.client.emit('rfid/registration/newEntry', savedEntryLog);
-
+          this.client.emit('door/newEntry', savedEntryLog);
+          console.log('Second');
           return false;
         }
 
@@ -160,12 +253,10 @@ export class RfidService implements OnModuleInit {
           });
 
           const savedEntryLog = await manager.save(newLog);
-          this.client.emit('rfid/registration/newEntry', savedEntryLog);
+          this.client.emit('door/newEntry', savedEntryLog);
+          console.log('Third');
           return false;
         }
-
-        // console.log('Member found for UID:', uid, 'Member ID:', member.id);
-        // Prepare the log (don't save yet)
 
         const newEntryLog = manager.create(EntryLog, {
           rfidUid: uid,
@@ -197,8 +288,9 @@ export class RfidService implements OnModuleInit {
         if (denialReason) {
           newEntryLog.status = EntryStatus.DENIED;
           newEntryLog.deniedReason = denialReason;
-          await manager.save(newEntryLog);
-          return false; // Transaction auto-commits the log and returns false
+          const savedDeniedLog = await manager.save(newEntryLog);
+          this.client.emit('door/newEntry', savedDeniedLog);
+          return false;
         }
 
         // 3. Handle Prepaid Deduction
@@ -242,8 +334,8 @@ export class RfidService implements OnModuleInit {
         // 4. Grant Access
         newEntryLog.status = EntryStatus.GRANTED;
         const savedEntryLog = await manager.save(newEntryLog);
-        this.client.emit('rfid/registration/newEntry', savedEntryLog);
-
+        this.client.emit('door/newEntry', savedEntryLog);
+        console.log('last');
         return true; // Entire transaction commits automatically here
       })
       .catch((err) => {

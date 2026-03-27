@@ -27,8 +27,8 @@ export class Member {
   user: User;
 
   @Index()
-  @Column({ unique: true, nullable: true })
-  rfidUid: string;
+  @Column({ type: 'varchar', unique: true, nullable: true })
+  rfidUid: string | null;
 
   @ManyToOne(() => MembershipPlan, (plan) => plan.members, {
     nullable: true, // Set to false if every member MUST have a plan

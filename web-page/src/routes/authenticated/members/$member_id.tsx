@@ -1,16 +1,19 @@
+import { MemberNotFoundState } from "@/components/custom_components/member_not_found_state";
 import { RfidRegistrationModal } from "@/components/custom_components/rfid_registration_modal";
 import { SpecificEntitySkeleton } from "@/components/custom_components/specific_entity_skeleton";
 import { UserEntryLogTable } from "@/components/custom_components/user_entry_log_table";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { dateFormatter } from "@/helpers/date_formatter";
 import { useEntryLogStore } from "@/stores/entryLogStore";
 import { useRfidStore } from "@/stores/rfidStore";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	Ban,
 	Calendar,
 	CreditCard,
 	Edit2,
+	Eraser,
 	History,
 	IdCardIcon,
 	Mail,
@@ -39,14 +42,22 @@ export const Route = createFileRoute("/authenticated/members/$member_id")({
 });
 
 export default function UserProfileScreen() {
-	const { registerRfid } = useRfidStore();
+	const { registerRfid, reassignRfid, resetRfid } = useRfidStore();
+	const queryClient = useQueryClient();
 	const { fetchLogById } = useEntryLogStore();
 	const { user } = Route.useLoaderData();
+
+	const modalMode = user?.member?.rfidUid ? "reassignment" : "registration";
 
 	const [modalOpen, setModalOpen] = useState(false);
 
 	const handleRegisterRfid = async () => {
 		await registerRfid(user!.id);
+		setModalOpen(true);
+	};
+
+	const handleReassignRfid = async () => {
+		await reassignRfid(user!.id);
 		setModalOpen(true);
 	};
 
@@ -65,15 +76,38 @@ export default function UserProfileScreen() {
 	});
 
 	const handleOnCloseModal = (scannedId: string | null) => {
-		if (scannedId) {
-			user!.member.rfidUid = scannedId;
+		if (scannedId && user) {
+			user.member.rfidUid = scannedId;
 		}
 		setModalOpen(false);
 	};
 
+	const resetRfidMutation = useMutation({
+		mutationFn: (userId: string) => resetRfid(userId),
+		onSuccess: (_data, userId) => {
+			if (user?.id === userId) {
+				user.member.rfidUid = undefined;
+			}
+			void queryClient.invalidateQueries({ queryKey: ["user", userId] });
+		},
+		onError: (error) => {
+			console.error("Unable to reset RFID", error);
+		},
+	});
+
+	const handleClearRfid = async () => {
+		if (!user || resetRfidMutation.isPending) return;
+		resetRfidMutation.mutate(user.id);
+	};
+
+	if (!user?.member) {
+		return <MemberNotFoundState />;
+	}
+
 	return (
 		<>
 			<RfidRegistrationModal
+				mode={modalMode}
 				isOpen={modalOpen}
 				onClose={handleOnCloseModal}
 				memberId={user!.id}
@@ -123,9 +157,6 @@ export default function UserProfileScreen() {
 							</button>
 							<button className="flex-1 sm:flex-none bg-white/5 border border-white/10 text-foreground px-4 sm:px-6 py-2.5 rounded-full font-body-semibold hover:bg-white/10 transition-colors text-sm">
 								Freeze Account
-							</button>
-							<button className="bg-white/5 border border-white/10 text-[#ef4444] p-2.5 rounded-full hover:bg-red-500/10 transition-colors shrink-0">
-								<Ban size={20} />
 							</button>
 						</div>
 					</div>
@@ -246,28 +277,62 @@ export default function UserProfileScreen() {
 											</div>
 										</div>
 
-										{user?.member.rfidUid ? (
-											<button className="w-full mt-2 bg-transparent text-muted-foreground border border-white/10 py-2.5 rounded-full text-sm font-body-med hover:bg-white/5 hover:text-foreground transition-colors flex items-center justify-center gap-2">
-												<History size={16} />
-												Re-assign Key Fob
-											</button>
-										) : (
-											<button
-												className="w-full mt-2 bg-transparent text-muted-foreground border border-white/10 py-2.5 rounded-full text-sm font-body-med hover:bg-white/5 hover:text-foreground transition-colors flex items-center justify-center gap-2"
-												onClick={handleRegisterRfid}
-											>
-												<IdCardIcon size={16} />
-												Assign Rfid Card
-											</button>
-										)}
+										<div className="flex items-center gap-2 mt-2 w-full">
+											{user?.member.rfidUid ? (
+												<>
+													{/* Primary Reassign Button - Expands to fill space */}
+													<Button
+														variant="default"
+														className="flex-1 bg-transparent text-muted-foreground border border-white/10 py-2.5 rounded-full text-sm font-body-med hover:bg-white/5 hover:text-foreground transition-colors flex items-center justify-center gap-2"
+														onClick={
+															handleReassignRfid
+														}
+													>
+														<History size={16} />
+														Re-assign RFID Card
+													</Button>
+
+													{/* Eraser Button - Icon only on the right */}
+													<Button
+														variant="ghost"
+														size="icon"
+														className="text-muted-foreground hover:text-destructive"
+														disabled={
+															resetRfidMutation.isPending
+														}
+														onClick={
+															handleClearRfid
+														}
+													>
+														{resetRfidMutation.isPending ? (
+															<Spinner className="size-4" />
+														) : (
+															<Eraser size={16} />
+														)}
+													</Button>
+												</>
+											) : (
+												<>
+													{/* Primary Assign Button */}
+													<Button
+														variant="default"
+														className="flex-1 bg-transparent text-muted-foreground border border-white/10 py-2.5 rounded-full text-sm font-body-med hover:bg-white/5 hover:text-foreground transition-colors flex items-center justify-center gap-2"
+														onClick={
+															handleRegisterRfid
+														}
+													>
+														<IdCardIcon size={16} />
+														Assign RFID Card
+													</Button>
+												</>
+											)}
+										</div>
 									</div>
 								</div>
 							</div>
 
 							{/* Financial Overview */}
 							<div className="bg-card rounded-radius-2xl p-6 border border-white/5 shadow-sm relative overflow-hidden">
-								<div className="absolute top-0 right-0 w-64 h-64 bg-[#ff7b00]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-
 								<div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 relative z-10">
 									<div>
 										<div className="flex items-center gap-3 mb-4">

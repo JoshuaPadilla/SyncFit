@@ -1,5 +1,5 @@
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { StrictMode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 
@@ -91,11 +91,11 @@ const rootElement = document.getElementById("app")!;
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
-	<StrictMode>
-		<QueryClientProvider client={queryClient}>
-			<AuthProvider>
-				<App />
-			</AuthProvider>
-		</QueryClientProvider>
-	</StrictMode>,
+	// <StrictMode>
+	<QueryClientProvider client={queryClient}>
+		<AuthProvider>
+			<App />
+		</AuthProvider>
+	</QueryClientProvider>,
+	// </StrictMode>,
 );
