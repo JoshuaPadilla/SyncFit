@@ -84,7 +84,7 @@ void reconnect() {
     String clientId = "ESP32Client-";
     clientId += String(random(0xffff), HEX);
     if (client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
-      client.subscribe("gym/door/command");
+      client.subscribe("door/command");
       digitalWrite(mqttIndicator, HIGH);
     } else {
       delay(5000);
@@ -164,7 +164,7 @@ void loop() {
   Serial.print("Tag Scanned: ");
   Serial.println(uidString);
 
-  if (client.publish("gym/rfid/scan", uidString.c_str())) {
+  if (client.publish("door/rfid/scan", uidString.c_str())) {
     tapSound();
   }
 

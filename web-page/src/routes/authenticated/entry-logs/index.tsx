@@ -192,12 +192,18 @@ export default function RealTimeEntryLogs() {
 	useEffect(() => {
 		if (!client) return;
 
-		const topicToSubscribe = `rfid/registration/newEntry`;
+		const topicToSubscribe = `door/newEntry`;
 
 		// Define the handler function so we can reference it for removal
-		const handleMessage = (topic: any, mqttMessage: any) => {
+		const handleMessage = (topic: any, mqttMessage: any, packet: any) => {
+			console.log(packet);
 			const newLog = JSON.parse(mqttMessage.toString()).data;
-
+			console.log(
+				"Received MQTT message on topic:",
+				topic,
+				"with data:",
+				newLog,
+			);
 			if (topic === topicToSubscribe) {
 				queryClient.setQueryData(
 					["entry-logs", query],

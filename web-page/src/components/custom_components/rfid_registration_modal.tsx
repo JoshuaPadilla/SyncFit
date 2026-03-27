@@ -18,6 +18,7 @@ interface RfidRegistrationModalProps {
 	memberName?: string;
 	memberId: string;
 	onClose: (scannedId: string | null) => void;
+	mode: "registration" | "reassignment";
 }
 
 export function RfidRegistrationModal({
@@ -25,9 +26,10 @@ export function RfidRegistrationModal({
 	memberName = "Alexander Thompson",
 	onClose,
 	memberId,
+	mode,
 }: RfidRegistrationModalProps) {
 	const client = useMqtt();
-	const { cancelRegistration, registerRfid } = useRfidStore();
+	const { cancelRegistration, cancelReassignment } = useRfidStore();
 
 	// Track the temporary hardware states
 	const [loading, setLoading] = useState(false);
@@ -47,7 +49,11 @@ export function RfidRegistrationModal({
 	const handleClose = async () => {
 		try {
 			setLoading(true);
-			await cancelRegistration(); // Ensure backend state is reset
+			if (mode === "registration") {
+				await cancelRegistration(); // Ensure backend state is reset
+			} else if (mode === "reassignment") {
+				await cancelReassignment(); // Ensure backend state is reset
+			}
 			onClose(scannedId); // Or an onClose() prop if you have one
 		} finally {
 			setLoading(false);
@@ -66,7 +72,10 @@ export function RfidRegistrationModal({
 	useEffect(() => {
 		if (!client) return;
 
-		const topicToSubscribe = `rfid/registration/${memberId}`;
+		const topicToSubscribe =
+			mode === "registration"
+				? `rfid/registration/${memberId}`
+				: `rfid/reassignment/${memberId}`;
 
 		// Define the handler function so we can reference it for removal
 		const handleMessage = (topic: any, mqttMessage: any) => {
@@ -96,7 +105,7 @@ export function RfidRegistrationModal({
 			client.unsubscribe(topicToSubscribe);
 			client.off("message", handleMessage); // This stops the leak
 		};
-	}, [client, memberId]);
+	}, [client, memberId, mode]);
 
 	// Reset state whenever the modal is opened
 	useEffect(() => {
