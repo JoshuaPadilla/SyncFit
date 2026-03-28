@@ -56,7 +56,7 @@ import {
 	ShieldAlert,
 	Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { useDebounce } from "use-debounce";
 
@@ -149,7 +149,7 @@ export default function RealTimeEntryLogs() {
 	const totalItems = result.total || 0;
 	const limit = result.limit || 5;
 
-	const getVisiblePages = (): Array<number | "ellipsis"> => {
+	const visiblePages = useMemo(() => {
 		const maxDirectPages = isMobile ? 5 : 7;
 		if (totalPages <= maxDirectPages) {
 			return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -182,9 +182,7 @@ export default function RealTimeEntryLogs() {
 
 		pages.push(totalPages);
 		return pages;
-	};
-
-	const visiblePages = getVisiblePages();
+	}, [totalPages, currentPage, isMobile]); // Only recalculate if these change
 
 	// Calculate the "Showing X to Y" values
 	const startItem = totalItems === 0 ? 0 : (currentPage - 1) * limit + 1;

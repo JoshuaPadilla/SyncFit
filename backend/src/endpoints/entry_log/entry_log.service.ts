@@ -109,7 +109,6 @@ export class EntryLogService {
         new Brackets((orQb) => {
           orQb
             .where('entryLog.rfidUid ILIKE :search')
-            // Check for member existence or match user details
             .orWhere(
               new Brackets((innerOr) => {
                 innerOr
@@ -118,10 +117,9 @@ export class EntryLogService {
                   .orWhere('user.email ILIKE :search');
               }),
             )
-            // This ensures logs WITHOUT members (Unknown cards) still show up
-            .orWhere('entryLog.memberId IS NULL')
+            // Fixed the Enum casting issue here
             .orWhere(
-              "CAST(COALESCE(entryLog.deniedReason, '') AS TEXT) ILIKE :search",
+              'COALESCE("entryLog"."deniedReason"::text, \'\') ILIKE :search',
             );
         }),
         { search: `%${search}%` },

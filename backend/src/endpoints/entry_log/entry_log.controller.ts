@@ -13,6 +13,7 @@ export class EntryLogController {
   @Roles(UserRole.ADMIN)
   @Get()
   async fetchAll(@Query() query: EntryLogQueryDto, @Request() req) {
+    console.log(query);
     return this.entryLogService.fetchAll(query);
   }
 
