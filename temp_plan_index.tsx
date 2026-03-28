@@ -66,7 +66,8 @@ const TYPE_BADGE_CLASS: Record<string, string> = {
 		"bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/10",
 	prepaid:
 		"bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/10",
-	walkin: "bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/10",
+	walkin:
+		"bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/10",
 };
 
 type FormState = {
@@ -341,7 +342,7 @@ export default function Plans() {
 
 			{/* Create / Edit Modal */}
 			<Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-				<DialogContent className="dark bg-card border-border text-foreground sm:max-w-lg max-h-[90vh] overflow-y-auto">
+				<DialogContent className="dark bg-card border-border sm:max-w-lg max-h-[90vh] overflow-y-auto">
 					<DialogHeader>
 						<DialogTitle className="font-header-bold">
 							{editingPlan ? "Edit Plan" : "Add New Plan"}
@@ -519,7 +520,7 @@ export default function Plans() {
 				open={!!deletingPlan}
 				onOpenChange={(open) => !open && setDeletingPlan(null)}
 			>
-				<DialogContent className="dark bg-card border-border text-foreground sm:max-w-sm">
+				<DialogContent className="dark bg-card border-border sm:max-w-sm">
 					<DialogHeader>
 						<DialogTitle className="font-header-bold">
 							Delete Plan
@@ -649,3 +650,8 @@ function PlanCard({ plan, onEdit, onDelete, onClick }: PlanCardProps) {
 		</div>
 	);
 }
+
+
+export const Route = createFileRoute("/authenticated/plans/")({
+	component: Plans,
+	pendingComponent: () => <ScreenSkeleton />,

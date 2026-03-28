@@ -2,6 +2,7 @@ import { MembershipType } from 'src/enums/membership_type.enum';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   OneToMany,
@@ -42,4 +43,7 @@ export class MembershipPlan {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date | null;
 }
