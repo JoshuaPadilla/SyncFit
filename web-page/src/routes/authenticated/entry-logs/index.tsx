@@ -75,8 +75,15 @@ export default function RealTimeEntryLogs() {
 	const isMobile = useIsMobile();
 	const client = useMqtt();
 	const queryClient = useQueryClient();
-	const { insights } = Route.useLoaderData();
-	const { fetchAllLogs } = useEntryLogStore();
+	const { insights: initialInsights } = Route.useLoaderData();
+	const { fetchAllLogs, fetchInsights } = useEntryLogStore();
+
+	const { data: insights = initialInsights } = useQuery({
+		queryKey: ["entry-log-insights"],
+		queryFn: () => fetchInsights(),
+		initialData: initialInsights,
+		staleTime: 1000 * 60 * 5,
+	});
 
 	const [searchInput, setSearchInput] = useState("");
 	const [query, setQuery] = useState<Partial<EntryLogQuery>>({
@@ -196,14 +203,8 @@ export default function RealTimeEntryLogs() {
 
 		// Define the handler function so we can reference it for removal
 		const handleMessage = (topic: any, mqttMessage: any, packet: any) => {
-			console.log(packet);
 			const newLog = JSON.parse(mqttMessage.toString()).data;
-			console.log(
-				"Received MQTT message on topic:",
-				topic,
-				"with data:",
-				newLog,
-			);
+
 			if (topic === topicToSubscribe) {
 				queryClient.setQueryData(
 					["entry-logs", query],
@@ -223,10 +224,20 @@ export default function RealTimeEntryLogs() {
 						};
 					},
 				);
-				try {
-				} catch (err) {
-					console.error("Failed to parse MQTT message", err);
-				}
+				queryClient.setQueryData(["entry-log-insights"], (old: any) => {
+					if (!old) return old;
+					return {
+						...old,
+						totalEntriesToday:
+							newLog.status === EntryStatus.GRANTED
+								? old.totalEntriesToday + 1
+								: old.totalEntriesToday,
+						deniedAttempts:
+							newLog.status === EntryStatus.DENIED
+								? old.deniedAttempts + 1
+								: old.deniedAttempts,
+					};
+				});
 			}
 		};
 
