@@ -51,8 +51,17 @@ export function MembersTable({ members, isPending, error }: Props) {
 		});
 	};
 
-	const handleViewPaymentHistory = (userId: string) => {
-		console.log("Viewing payments for user ", userId);
+	const handleViewPaymentHistory = (user: User) => {
+		navigate({
+			to: "/authenticated/payments",
+			search:
+				user.member?.id != null
+					? {
+							memberId: user.member.id,
+							memberName: `${user.firstName} ${user.lastName}`,
+						}
+					: {},
+		});
 	};
 
 	const handleSuspendAccount = (userId: string) => {
@@ -131,7 +140,7 @@ export function MembersTable({ members, isPending, error }: Props) {
 									</DropdownMenuItem>
 									<DropdownMenuItem
 										onClick={() =>
-											handleViewPaymentHistory(user.id)
+											handleViewPaymentHistory(user)
 										}
 									>
 										View Payment History
@@ -269,7 +278,7 @@ export function MembersTable({ members, isPending, error }: Props) {
 											<DropdownMenuItem
 												onClick={() =>
 													handleViewPaymentHistory(
-														user.id,
+														user,
 													)
 												}
 											>

@@ -2,6 +2,7 @@ import { MembershipStatus } from "@/enums/membership_status.enum";
 import type { EntryLog } from "./entry_log";
 import { MembershipPlan } from "./membership_plan";
 import type { Payment } from "./payment";
+import type { User } from "./user";
 
 export type Member = {
 	id: string;

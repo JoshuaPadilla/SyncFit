@@ -57,6 +57,7 @@ const config = defineConfig({
 			workbox: {
 				cleanupOutdatedCaches: true,
 				clientsClaim: true,
+				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
 				skipWaiting: true,
 				navigateFallback: "/index.html",
 				runtimeCaching: [

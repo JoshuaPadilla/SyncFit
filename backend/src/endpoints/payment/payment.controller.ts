@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   HttpStatus,
   NotFoundException,
   Post,
+  Query,
   RawBodyRequest,
   Req,
   Request,
@@ -15,6 +17,7 @@ import {
 import * as crypto from 'crypto';
 import { CreateCheckoutDto } from 'src/dto/createCheckoutDto';
 import { CreateTopupDto } from 'src/dto/createTopupDto';
+import { PaymentQueryDto } from 'src/dto/queries_dto/payment_query.dto';
 import { CheckoutType } from 'src/enums/checkout_types.enum';
 import { JwtAuthGuard } from 'src/guards/jwt_auth.guard';
 import { SucessCheckoutMetadata } from 'src/types/success_checkout_metadata';
@@ -23,6 +26,18 @@ import { PaymentService } from './payment.service';
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  fetchPayments(@Query() query: PaymentQueryDto) {
+    return this.paymentService.fetchPayments(query);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('summary')
+  getPaymentSummary(@Query() query: PaymentQueryDto) {
+    return this.paymentService.getPaymentSummary(query);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post('plan-checkout')

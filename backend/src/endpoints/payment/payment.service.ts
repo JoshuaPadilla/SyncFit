@@ -4,6 +4,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { CreateCheckoutDto } from 'src/dto/createCheckoutDto';
 import { CreateTopupDto } from 'src/dto/createTopupDto';
+import { PaymentQueryDto } from 'src/dto/queries_dto/payment_query.dto';
 import { Member } from 'src/entities/member.entity';
 import { MembershipPlan } from 'src/entities/membership_plan.entity';
 import { Payment } from 'src/entities/payment.entity';
@@ -15,7 +16,7 @@ import { MembershipType } from 'src/enums/membership_type.enum';
 import { PaymentStatus } from 'src/enums/payment_status.enum';
 import { TransactionType } from 'src/enums/transaction_types.enum';
 import { SucessCheckoutMetadata } from 'src/types/success_checkout_metadata';
-import { DataSource } from 'typeorm';
+import { Brackets, DataSource } from 'typeorm';
 
 @Injectable()
 export class PaymentService {
@@ -23,6 +24,114 @@ export class PaymentService {
     private readonly httpService: HttpService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
+
+  private createPaymentQueryBuilder(query: PaymentQueryDto) {
+    const qb = this.dataSource
+      .getRepository(Payment)
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.member', 'member')
+      .leftJoinAndSelect('member.user', 'user')
+      .leftJoinAndSelect('member.membershipPlan', 'membershipPlan');
+
+    if (query.memberId) {
+      qb.andWhere('member.id = :memberId', { memberId: query.memberId });
+    }
+
+    if (query.status) {
+      qb.andWhere('payment.status = :status', { status: query.status });
+    }
+
+    if (query.paymentMethod) {
+      qb.andWhere('LOWER(payment.paymentMethod) = :paymentMethod', {
+        paymentMethod: query.paymentMethod.toLowerCase(),
+      });
+    }
+
+    if (query.search) {
+      const search = `%${query.search.toLowerCase()}%`;
+
+      qb.andWhere(
+        new Brackets((subQuery) => {
+          subQuery
+            .where('LOWER(user.firstName) LIKE :search', { search })
+            .orWhere('LOWER(user.lastName) LIKE :search', { search })
+            .orWhere('LOWER(user.email) LIKE :search', { search })
+            .orWhere('LOWER(payment.paymongoReference) LIKE :search', {
+              search,
+            })
+            .orWhere('LOWER(payment.paymentMethod) LIKE :search', { search })
+            .orWhere('LOWER(membershipPlan.title) LIKE :search', { search });
+        }),
+      );
+    }
+
+    return qb;
+  }
+
+  async fetchPayments(query: PaymentQueryDto) {
+    const { page = 1, limit = 10 } = query;
+
+    const qb = this.createPaymentQueryBuilder(query)
+      .orderBy('payment.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getPaymentSummary(query: PaymentQueryDto) {
+    const aggregate = await this.createPaymentQueryBuilder(query)
+      .select('COUNT(payment.id)', 'totalPayments')
+      .addSelect(
+        'COALESCE(SUM(CASE WHEN payment.status = :paidStatus THEN payment.amount ELSE 0 END), 0)',
+        'totalRevenue',
+      )
+      .setParameter('paidStatus', PaymentStatus.PAID)
+      .getRawOne<{ totalPayments: string; totalRevenue: string }>();
+
+    const groupedStatuses = await this.createPaymentQueryBuilder(query)
+      .select('payment.status', 'status')
+      .addSelect('COUNT(payment.id)', 'count')
+      .groupBy('payment.status')
+      .getRawMany<{ status: PaymentStatus; count: string }>();
+
+    const groupedMethods = await this.createPaymentQueryBuilder(query)
+      .select('LOWER(payment.paymentMethod)', 'paymentMethod')
+      .addSelect('COUNT(payment.id)', 'count')
+      .groupBy('LOWER(payment.paymentMethod)')
+      .orderBy('count', 'DESC')
+      .getRawMany<{ paymentMethod: string | null; count: string }>();
+
+    const statusCounts: Record<PaymentStatus, number> = {
+      [PaymentStatus.PENDING]: 0,
+      [PaymentStatus.PAID]: 0,
+      [PaymentStatus.FAILED]: 0,
+    };
+
+    for (const entry of groupedStatuses) {
+      statusCounts[entry.status] = Number(entry.count);
+    }
+
+    return {
+      totalPayments: Number(aggregate?.totalPayments ?? 0),
+      totalRevenue: Number(aggregate?.totalRevenue ?? 0),
+      statusCounts,
+      paymentMethods: groupedMethods
+        .filter((entry) => entry.paymentMethod)
+        .map((entry) => ({
+          paymentMethod: entry.paymentMethod as string,
+          count: Number(entry.count),
+        })),
+    };
+  }
 
   async createPlanCheckout(
     createCheckoutDto: CreateCheckoutDto,
