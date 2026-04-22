@@ -1,164 +1,166 @@
-#include <WiFi.h>
-#include <PubSubClient.h>
-#include <SPI.h>
-#include <MFRC522.h>
-#include <ArduinoJson.h>
-#include <ESP32Servo.h>
+  #include <WiFi.h>
+  #include <PubSubClient.h>
+  #include <SPI.h>
+  #include <MFRC522.h>
+  #include <ArduinoJson.h>
+  #include <ESP32Servo.h>
+  #include "secrets.h"
 
-#include "secrets.h"
+  // Pin Definitions
+  const int buzzerPin = 14;
+  const int statusRed = 4;    // BUSY / CONNECTING
+  const int statusGreen = 5;  // READY / CONNECTED
+  const int ledFeedbackRed = 27; 
+  const int ledFeedbackGreen = 12;
 
-// Constants from secrets.h
-const char* ssid = SECRET_SSID;
-const char* password = SECRET_PASS;
-const char* mqtt_server = MQTT_HOST;
-const int mqtt_port = 1883;
-const char* mqtt_user = MQTT_USER;
-const char* mqtt_pass = MQTT_PASS;
+  #define SERVO_PIN 13      
+  #define SS_PIN 21        
+  #define RST_PIN 22       
 
+  // Constants from secrets.h
+  const char* ssid = SECRET_SSID;
+  const char* password = SECRET_PASS;
+  const char* mqtt_server = MQTT_HOST;
+  const int mqtt_port = 1883;
+  const char* mqtt_user = MQTT_USER;
+  const char* mqtt_pass = MQTT_PASS;
 
-const int buzzerPin = 14;
-const int red = 2;        // Built-in LED on many boards
-const int green = 12;     // Changed from 47 (S3 only)
-const int mqttIndicator = 4;
-const int wifiIndicator = 5;
+  MFRC522 mfrc522(SS_PIN, RST_PIN);
+  WiFiClient espClient;
+  PubSubClient client(espClient);
+  Servo myServo; 
 
-#define SERVO_PIN 13      
-#define SS_PIN 21        
-#define RST_PIN 22       
+  // Timers and State
+  unsigned long doorTimer = 0;
+  bool doorOpen = false;
+  unsigned long feedbackRedTimer = 0;
+  bool feedbackRedActive = false;
+  unsigned long buzzerTimer = 0;
+  bool buzzerActive = false;
+  unsigned long lastMqttRetry = 0;
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);
-WiFiClient espClient;
-PubSubClient client(espClient);
-Servo myServo; 
-
-unsigned long doorTimer = 0;
-bool doorOpen = false;
-unsigned long redTimer = 0;
-bool redActive = false;
-unsigned long buzzerTimer = 0;
-bool buzzerActive = false;
-
-void servoWrite(int degrees) {
-  myServo.write(degrees);
-}
-
-void callback(char* topic, byte* payload, unsigned int length) {
-  StaticJsonDocument<200> doc;
-  DeserializationError error = deserializeJson(doc, payload, length);
-
-  if (error) return;
-
-  String status = doc["data"];
-  Serial.print("Status received: ");
-  Serial.println(status);
-
-  if (status == "unlock") {
-    digitalWrite(green, HIGH);
-    servoWrite(120);
-    doorTimer = millis();
-    doorOpen = true;
-  } else {
-    Serial.println("Access Denied");
-    digitalWrite(red, HIGH);
-    redTimer = millis();
-    redActive = true;
-  }
-}
-
-void setup_wifi() {
-  digitalWrite(wifiIndicator, LOW);
-  Serial.print("Connecting to network");
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  digitalWrite(wifiIndicator, HIGH);
-  Serial.println("\nNetwork connected");
-}
-
-void reconnect() {
-  digitalWrite(mqttIndicator, LOW);
-  while (!client.connected()) {
-    String clientId = "ESP32Client-";
-    clientId += String(random(0xffff), HEX);
-    if (client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
-      client.subscribe("door/command");
-      digitalWrite(mqttIndicator, HIGH);
+  void setSystemStatus(bool ready) {
+    if (ready) {
+      digitalWrite(statusGreen, HIGH);
+      digitalWrite(statusRed, LOW);
     } else {
-      delay(5000);
+      digitalWrite(statusGreen, LOW);
+      digitalWrite(statusRed, HIGH);
     }
   }
-}
 
-void tapSound() {
-  tone(buzzerPin, 500);
-  buzzerTimer = millis();
-  buzzerActive = true;
-}
+  void callback(char* topic, byte* payload, unsigned int length) {
+    StaticJsonDocument<200> doc;
+    DeserializationError error = deserializeJson(doc, payload, length);
+    if (error) return;
 
-void setup() {
-  Serial.begin(115200);
-  
-  pinMode(wifiIndicator, OUTPUT);
-  pinMode(mqttIndicator, OUTPUT);
-  pinMode(red, OUTPUT);
-  pinMode(green, OUTPUT);
-  pinMode(buzzerPin, OUTPUT);
-
-  setup_wifi();
-
-  client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback);
-
-  // Standard ESP32 hardware SPI: SCK=18, MISO=19, MOSI=23, SS=21
-  SPI.begin(); 
-  mfrc522.PCD_Init();
-
-  myServo.setPeriodHertz(50); 
-  myServo.attach(SERVO_PIN, 500, 2400); 
-  
-  servoWrite(60); // Initial closed position
-  Serial.println("System Ready");
-}
-
-void loop() {
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
-
-  unsigned long currentMillis = millis();
-
-  if (doorOpen && (currentMillis - doorTimer >= 3000)) {
-    digitalWrite(green, LOW);
-    servoWrite(60);
-    doorOpen = false;
+    String status = doc["data"];
+    if (status == "unlock") {
+      digitalWrite(ledFeedbackGreen, HIGH);
+      myServo.write(120);
+      doorTimer = millis();
+      doorOpen = true;
+    } else {
+      digitalWrite(ledFeedbackRed, HIGH);
+      feedbackRedTimer = millis();
+      feedbackRedActive = true;
+    }
   }
 
-  if (redActive && (currentMillis - redTimer >= 2000)) {
-    digitalWrite(red, LOW);
-    redActive = false;
+  void setup_wifi() {
+    setSystemStatus(false); // Red on while connecting
+    Serial.print("Connecting to WiFi");
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+    }
+    Serial.println("\nWiFi Connected");
   }
 
-  if (buzzerActive && (currentMillis - buzzerTimer >= 300)) {
-    noTone(buzzerPin);
-    buzzerActive = false;
+  void manageConnection() {
+    if (!client.connected()) {
+      setSystemStatus(false); // Switch to Red if MQTT drops
+      unsigned long now = millis();
+      if (now - lastMqttRetry > 5000) {
+        lastMqttRetry = now;
+        String clientId = "ESP32Client-" + String(random(0xffff), HEX);
+        if (client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
+          client.subscribe("door/command");
+          Serial.println("MQTT Connected");
+        }
+      }
+    } else {
+      setSystemStatus(true); // Green when everything is connected
+    }
   }
 
-  if (!mfrc522.PICC_IsNewCardPresent()) return;
-  if (!mfrc522.PICC_ReadCardSerial()) return;
+  void setup() {
+    Serial.begin(115200);
+    
+    pinMode(statusRed, OUTPUT);
+    pinMode(statusGreen, OUTPUT);
+    pinMode(ledFeedbackRed, OUTPUT);
+    pinMode(ledFeedbackGreen, OUTPUT);
+    pinMode(buzzerPin, OUTPUT);
 
-  String uidString = "";
-  for (byte i = 0; i < mfrc522.uid.size; i++) {
-    uidString += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
-    uidString += String(mfrc522.uid.uidByte[i], HEX);
+    setup_wifi();
+    client.setServer(mqtt_server, mqtt_port);
+    client.setCallback(callback);
+
+    SPI.begin(); 
+    mfrc522.PCD_Init();
+
+    myServo.setPeriodHertz(50); 
+    myServo.attach(SERVO_PIN, 500, 2400); 
+    myServo.write(60); 
+
+    Serial.println("System Initialized");
   }
-  uidString.toUpperCase();
 
-  if (client.publish("door/rfid/scan", uidString.c_str())) {
-    tapSound();
+  void loop() {
+    manageConnection();
+    client.loop();
+
+    unsigned long currentMillis = millis();
+
+    // Non-blocking Timer: Door Close
+    if (doorOpen && (currentMillis - doorTimer >= 3000)) {
+      digitalWrite(ledFeedbackGreen, LOW);
+      myServo.write(60);
+      doorOpen = false;
+    }
+
+    // Non-blocking Timer: Error LED
+    if (feedbackRedActive && (currentMillis - feedbackRedTimer >= 2000)) {
+      digitalWrite(ledFeedbackRed, LOW);
+      feedbackRedActive = false;
+    }
+
+    // Non-blocking Timer: Buzzer
+    if (buzzerActive && (currentMillis - buzzerTimer >= 300)) {
+      noTone(buzzerPin);
+      buzzerActive = false;
+    }
+
+    // RFID Scanning
+    if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
+      return;
+    }
+
+    String uidString = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      uidString += (mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+      uidString += String(mfrc522.uid.uidByte[i], HEX);
+    }
+    uidString.toUpperCase();
+
+    if (client.publish("door/rfid/scan", uidString.c_str())) {
+      tone(buzzerPin, 500);
+      buzzerTimer = millis();
+      buzzerActive = true;
+    }
+
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
   }
-
-  mfrc522.PICC_HaltA();
-}
