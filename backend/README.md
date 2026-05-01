@@ -25,6 +25,12 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Detection Logs
+
+Detection logs are stored in Postgres through the `detection_logs` entity and keep their uploaded files in the Supabase `snail-detected` bucket.
+
+API documentation: [docs/detection-logs.md](docs/detection-logs.md)
+
 ## Project setup
 
 ```bash

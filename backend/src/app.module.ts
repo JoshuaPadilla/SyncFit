@@ -9,6 +9,7 @@ import { MembershipPlanModule } from './endpoints/membership_plan/membership_pla
 import { PaymentModule } from './endpoints/payment/payment.module';
 import { RfidModule } from './endpoints/rfid/rfid.module';
 import { UserModule } from './endpoints/user/user.module';
+import { DetectionLog } from './entities/detection_log.entity';
 import { EntryLog } from './entities/entry_log.entity';
 import { Member } from './entities/member.entity';
 import { MembershipPlan } from './entities/membership_plan.entity';
@@ -32,7 +33,15 @@ import { SupabaseModule } from './modules/supabase.module';
       ssl: {
         rejectUnauthorized: false,
       },
-      entities: [User, EntryLog, Member, MembershipPlan, Payment, Transaction],
+      entities: [
+        User,
+        EntryLog,
+        Member,
+        MembershipPlan,
+        Payment,
+        DetectionLog,
+        Transaction,
+      ],
     }),
 
     UserModule,
