@@ -24,7 +24,7 @@ Each detection record stores these fields:
 
 ## Routes
 
-Base path: `/api/detection-logs`
+Base path: `https://syncfit.site/api/detection-logs`
 
 ### Create
 
@@ -44,7 +44,7 @@ Form fields:
 Example:
 
 ```bash
-curl -X POST http://localhost:3005/api/detection-logs \
+curl -X POST https://syncfit.site/api/detection-logs \
   -H "Accept: application/json" \
   -F "photo=@./snail.jpg" \
   -F "eventId=event-123" \
